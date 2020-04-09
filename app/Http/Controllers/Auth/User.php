@@ -25,6 +25,7 @@ class User extends Main
         return md5(md5($pass).md5($pass));
 
     }
+    
 
     /**
      * Метод генерации случайного пароля

@@ -24,6 +24,9 @@ class UserModel
 
     }
 
+    /**
+     * Метод записи времени последнего посещения
+     */
     public static function setLastTime($id = 0) {
 
         return DB::table('users')
