@@ -123,6 +123,18 @@ function App() {
 
     }
 
+    /** Удаление файла */
+    this.deleteFile = (data = {}, callback = false) => {
+
+        this.ajax("/api/deleteFile", data, json => {
+
+            if (typeof callback == "function")
+                callback(json);
+
+        });
+
+    }
+
     /** Применение ошибочной валидации к формам */
     this.formValidErrors = (e, inputs) => {
         $.each(inputs, (i,row) => {
@@ -361,6 +373,76 @@ function App() {
             </div>`);
             
         return hide;
+
+    }
+
+    /** Список файлов для вывода на весь экран */
+    this.fileList = {};
+    /** Вывод изображений на весь экран */
+    this.showImg = e => {
+
+        let id = $(e).data('id');
+
+        console.log(id, this.fileList[id]);
+
+        if (this.fileList[id]) {
+            $('#content').append(`<div class="img-content" id="img-content">
+                <div class="d-flex justify-content-center align-items-center image-loading">
+                    <div class="spinner-grow text-light" role="status">
+                        <span class="sr-only text-light">Загрузка...</span>
+                    </div>
+                </div>
+                <img class="d-none" src="${this.fileList[id].link}" onload="$(this).removeClass('d-none');">
+                <button type="button" class="btn btn-light rounded-circle shadow" onclick="$('#img-content').remove();"><i class="fa fa-times" aria-hidden="true"></i></button>
+
+                <div class="back d-flex justify-content-start align-items-center hover-link" data-id="${id}" data-step="back" onclick="app.nextPhoto(this);"><i class="fas fa-chevron-left text-light fa-2x"></i></div>
+                <div class="next d-flex justify-content-end align-items-center hover-link" data-id="${id}" data-step="next" onclick="app.nextPhoto(this);"><i class="fas fa-chevron-right text-light fa-2x"></i></div>                
+
+            </div>`);
+        }
+
+    }
+
+    this.nextPhoto = e => {
+
+        $('#img-content img').remove();
+
+        let id = $(e).data('id'),
+            step = $(e).data('step'),
+            first = false,
+            last = false,
+            next = false,
+            back = false,
+            newid = false;
+
+        $.each(this.fileList, (i,row) => {
+
+            if (!first)
+                first = i;
+
+            last = i;
+
+            if (i != id && i < id)
+                back = i;
+
+            if (i != id && i > id && next === false)
+                next = i;
+
+        });
+
+        if (step == "next" && next)
+            newid = next;
+        else if (step == "next" && next === false)
+            newid = first;
+        else if (step == "back" && back)
+            newid = back;
+        else if (step == "back" && back === false)
+            newid = last;
+
+        let img = `<img class="d-none" src="${this.fileList[newid].link}" onload="$(this).removeClass('d-none');">`;
+
+        $('#img-content').append(img);
+        $('#img-content .next, #img-content .back').data('id', newid);
 
     }
 

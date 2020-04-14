@@ -142,7 +142,7 @@ class UserModel
     }
 
     /**
-     * Списоквсех сотрудников
+     * Список всех сотрудников
      */
     public static function getUsersList($offset = 0, $id = false) {
 
@@ -151,7 +151,9 @@ class UserModel
         ->leftJoin('users_group', 'users.groupId', '=', 'users_group.id')
         ->orderBy('firstname');
 
-        if ($id)
+        if (is_array($id))
+            $data = $data->whereIn('users.id', $id);
+        elseif ($id)
             $data = $data->where('users.id', $id)->limit(1);
         else
             $data = $data->offset($offset)->limit(40);
@@ -159,6 +161,96 @@ class UserModel
         $data = $data->get();
 
         return count($data) == 1 ? $data[0] : $data;
+
+    }
+
+    /**
+     * Список пользователей доавбленных в друзья
+     */
+    public static function getFavoritUsersList($request) {
+
+        return DB::table('users_favorit')
+        ->select('users.*', 'users_group.admin', 'users_access.value as indAdmin')
+        ->join('users', 'users.id', '=', 'users_favorit.favoritId')
+        ->leftJoin('users_group', 'users_group.id', '=', 'users.groupId')
+        ->leftJoin('users_access', function ($join) {
+            $join->on('users_access.userId', '=', 'users.id')
+            ->where('users_access.access', 'admin');
+        })
+        ->where([
+            ['users.ban', 0],
+            ['users_favorit.userId', $request->__user->id]
+        ])
+        ->orderBy('firstname')
+        ->get();
+
+    }
+
+    /**
+     * Проверка избранного коллеги
+     */
+    public static function getFavCollegueData($request) {
+
+        return DB::table('users_favorit')->where([
+            ['userId', $request->__user->id],
+            ['favoritId', $request->id]
+        ])->get();
+
+    }
+
+    /**
+     * Добавление коллеги в избранное
+     */
+    public static function addFavCollegue($request) {
+
+        return DB::table('users_favorit')->insert([
+            'userId' => $request->__user->id,
+            'favoritId' => $request->id
+        ]);
+
+    }
+
+    /**
+     * Удаление коллеги из избранное
+     */
+    public static function delFavCollegue($request) {
+
+        return DB::table('users_favorit')->where([
+            ['userId', $request->__user->id],
+            ['favoritId', $request->id]
+        ])->delete();
+
+    }
+
+    /**
+     * Поиск коллеги
+     */
+    public static function searchCollegue($request) {
+
+        return DB::table('users')
+        ->select('users.*', 'users_group.admin', 'users_access.value as indAdmin', 'users_favorit.id as favorit')
+        ->leftJoin('users_group', 'users_group.id', '=', 'users.groupId')
+        ->leftJoin('users_access', function ($join) {
+            $join->on('users_access.userId', '=', 'users.id')
+            ->where('users_access.access', 'admin');
+        })
+        ->leftJoin('users_favorit', function ($join) use ($request) {
+            $join->on('users_favorit.favoritId', '=', 'users.id')
+            ->where('users_favorit.userId', $request->__user->id);
+        })
+        ->where([
+            ['users.ban', 0],
+            ['users.id', '!=', $request->__user->id]
+        ])
+        ->where(function ($query) use ($request) {
+            $query->where(DB::raw('CONCAT(users.firstname,users.lastname,users.fathername)'), 'LIKE', "%{$request->search}%")
+            ->orWhere('users.login', 'LIKE', "%{$request->search}%")
+            ->orWhere('users.phone', 'LIKE', "%{$request->search}%")
+            ->orWhere('users.email', 'LIKE', "%{$request->search}%");
+        })
+        ->orderBy('firstname')
+        ->limit(15)
+        ->get();
 
     }
 

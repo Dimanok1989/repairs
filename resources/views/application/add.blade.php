@@ -83,7 +83,7 @@
         @if ($__user)
             <div class="custom-control custom-switch mx-2 mt-2 mb-3 text-left">
                 <input type="checkbox" class="custom-control-input" name="priority" id="priority-checkbox">
-                <label class="custom-control-label" for="priority-checkbox">Имеет приоритет</label>
+                <label class="custom-control-label" for="priority-checkbox">Высокий приоритет</label>
             </div>
         @endif
 

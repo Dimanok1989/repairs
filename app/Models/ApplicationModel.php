@@ -68,7 +68,7 @@ class ApplicationModel
         if ($request->client)
             $data = $data->whereIn('applications.clientId', is_array($request->client) ? $request->client : [$request->client]);
 
-        return $data->orderBy('applications.date', 'DESC')->offset($request->offset)->limit(40)->get();
+        return $data->orderBy('applications.priority', 'DESC')->orderBy('applications.date', 'DESC')->offset($request->offset)->limit(40)->get();
 
     }
 
@@ -200,6 +200,24 @@ class ApplicationModel
     public static function writeNewComment($data) {
 
         return DB::table('applications_comment')->insertGetId($data);
+
+    }
+
+    /**
+     * Запись сервиса
+     */
+    public static function createService($data) {
+
+        return DB::table('applications_service')->insertGetId($data);
+
+    }
+
+    /**
+     * Обновление заявки для её завершения
+     */
+    public static function updateApplicationRowForDone($id, $data) {
+
+        return DB::table('applications')->where('id', $id)->limit(1)->update($data);
 
     }
 

@@ -10,6 +10,7 @@ use Cookie;
 use Crypt;
 
 use App\Models\UserModel;
+use App\Models\ProjectModel;
 use DB;
 
 class Users extends Main
@@ -20,7 +21,7 @@ class Users extends Main
      */
     public static function getUsersList(Request $request) {
 
-        // Првоерка пав доступа к разделу
+        // Првоерка прав доступа к разделу
         if (!$chek = parent::checkRight('admin', $request->token))
             return parent::error("Доступ к списку сотрудников ограничен", 1001);
 
@@ -531,6 +532,119 @@ class Users extends Main
             'newaccess' => $newaccess,
             'delaccess' => $delaccess,
         ]);
+
+    }
+
+    /**
+     * Список пользователей доавбленных в избранный список коллег другими пользователями
+     */
+    public static function getFavoritUsersList(Request $request) {
+
+        // Спиоск сотрудников в друзьях
+        $users = [];
+
+        foreach (UserModel::getFavoritUsersList($request) as $user) {
+            $user->favorit = "none";
+            $users[] = self::createRowCollegue($user);
+        }
+
+        // Проверка доступа к заказчику
+        if ($request->projectId)
+            return self::checkUserListForClient($users, $request->projectId);
+
+        return $users;
+
+    }
+
+    /**
+     * Поиск коллег
+     */
+    public static function searchCollegue(Request $request) {
+
+        $users = [];
+
+        foreach (UserModel::searchCollegue($request) as $user)
+            $users[] = self::createRowCollegue($user);
+
+        return self::checkUserListForClient($users, $request->projectId);
+
+    }
+
+    /**
+     * Обработка строки польвзаотеля для списка коллег
+     */
+    public static function createRowCollegue($row) {
+
+        if ($row->indAdmin !== null)
+            $row->admin = $row->indAdmin;
+
+        unset($row->indAdmin);
+
+        $row->fio = parent::getUserFio($row->firstname, $row->lastname, $row->fathername, 0);
+
+        return $row;
+
+    }
+
+    /**
+     * Перепроверка пользователей по досутпу к заказчику
+     */
+    public static function checkUserListForClient($rows, $projectId) {
+
+        $users = [];
+
+        $userIds = $groupIds = [];
+        foreach ($rows as $user) {
+
+            $ids[] = $user->id;
+
+            if (!in_array($user->groupId, $groupIds))
+                $groupIds[] = $user->groupId;
+
+        }
+
+        $userAcc = $groupAcc = [];
+
+        foreach (ProjectModel::getAccessDoneProjectList($projectId, 1, $groupIds) as $row)
+            if ($row->access == 1)
+                $groupAcc[$row->typeId] = $row->access;
+
+        foreach (ProjectModel::getAccessDoneProjectList($projectId, 2, $userIds) as $row)
+            if ($row->access == 1)
+                $userAcc[$row->typeId] = $row->access;
+
+        foreach ($rows as $user) {
+            
+            if (isset($userAcc[$user->id]) OR isset($groupAcc[$user->groupId]) OR $user->admin == 1)
+                $users[] = $user;
+
+        }
+
+        return $users;
+
+    }
+
+    /**
+     * Добавление/Удаление коллеги из избранного
+     */
+    public static function userFavorit(Request $request) {
+
+        if (!$request->id OR $request->id == "")
+            return parent::error("Неправильный идентификатор", 7000);
+
+        $fav = UserModel::getFavCollegueData($request);
+
+        // Добавление в избранное
+        if (!count($fav)) {
+            return parent::json([
+                'add' => UserModel::addFavCollegue($request),
+            ]);
+        }
+
+        // Удаление из избранного
+        return parent::json([
+            'del' => UserModel::delFavCollegue($request),
+        ]); 
 
     }
 

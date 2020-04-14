@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Storage;
 use Intervention\Image\Facades\Image;
 
 use App\Http\Controllers\Admin\Projects;
+use App\Http\Controllers\Service\Service;
 
 use App\Models\ApplicationModel;
 use App\Models\ProjectModel;
@@ -339,17 +340,21 @@ class Application extends Main
 
                 }
 
-                // Кнопка объединения заявки
-                if (parent::checkRight(['admin','application_combine'], $user))
-                    $buttons['combine'] = true;
+                if (!$application->done) {
 
-                // Кнопка удаления заявки
-                if (parent::checkRight(['admin','application_del'], $user))
-                    $buttons['del'] = true;
+                    // Кнопка объединения заявки
+                    if (parent::checkRight(['admin','application_combine'], $user))
+                        $buttons['combine'] = true;
 
-                // Кнопка пометки проблемной заявки
-                if (parent::checkRight(['admin','application_problem'], $user))
-                    $buttons['problem'] = true;
+                    // Кнопка удаления заявки
+                    if (parent::checkRight(['admin','application_del'], $user))
+                        $buttons['del'] = true;
+
+                    // Кнопка пометки проблемной заявки
+                    if (parent::checkRight(['admin','application_problem'], $user))
+                        $buttons['problem'] = true;
+
+                }
 
             }
 
@@ -361,6 +366,22 @@ class Application extends Main
         if (isset($application->imagesData))
             foreach ($application->imagesData as $image)
                 $images[] = $image;
+
+
+        // Получение списка сервисов по заявке
+        $services = [];
+
+        // Идентификатор сервиса завершения
+        if ($application->done)
+            $services[] = $application->done;
+
+        // Идентификатор сервиса подменного фонда
+        if ($application->changedId)
+            $services[] = $application->changedId;
+
+        if ($services)
+            $service = Service::getServicesData($services);
+
 
         return parent::json([
             'images' => count($images) ? $images : false,
@@ -467,7 +488,8 @@ class Application extends Main
 				
 			$path[$key] = [
                 'name' => $file->getClientOriginalName(),
-                'razdel' => "appnew",
+                'razdel' => $request->razdel ? $request->razdel : "appnew",
+                'description' => $request->description ? $request->description : false,
                 'size' => $file->getSize(),
 				'ext' => $file->getClientOriginalExtension(),
 				'formatSize' => parent::formatSize($file->getSize()),
@@ -673,9 +695,177 @@ class Application extends Main
             $repairs[] = $row;
         }
 
+        // Идентификатор заказчика
+        $request->projectId = $application->clientId;
+
+        // Избранные коллеги для сотрудника
+        $favorites = \App\Http\Controllers\Admin\Users::getFavoritUsersList($request);
+
         return parent::json([
             'application' => $application,
             'repairs' => $repairs,
+            'favorites' => $favorites,
+        ]);
+
+    }
+
+
+    /**
+     * Метод загрузки файлов при завершении заявки
+     */
+    public static function uploadFileForDone(Request $request) {
+
+        return self::uploadImagesAddApplication($request);
+
+    }
+
+
+    /**
+     * Удаение файла 
+     */
+    public static function deleteFile(Request $request) {
+
+        return parent::json([
+            'id' => $request->id,
+            'data' => $request->input(),
+        ]);
+
+    }
+
+    /**
+     * Завршение заявки
+     * 
+     * @return JSON
+     */
+    public static function applicationDone(Request $request) {
+
+        // Проверка прав
+        if (!parent::checkRight(['admin','applications_done'], $request->__user))
+            return parent::error("Нет прав для завершения заявок", 4000);
+
+        $id = (int) $request->id;
+
+        // Проверка наличия идентификаторв
+        if (!$id)
+            return parent::error("Неверный идентификатор", 4001);
+
+        // Проверка наличия загруженных фотографий
+        if (!$request->photo_bus)
+            return parent::error("Не загружено фото передка машины", 4002);
+        if (!$request->photo_device)
+            return parent::error("Не загружено фото исправного устройства", 4003);
+        if (!$request->photo_screen)
+            return parent::error("Не загружено фото дисплея работающего устройства", 4004);
+
+        // Првоерка добавленных фото
+        if (is_array($request->required))
+            foreach ($request->required as $required)
+                if (!$request->$required)
+                    return parent::error("Не загружено одно из фото замены оборудования", 4004);
+
+        // Проверка выбранных пунктов ремонта
+        if (!$request->repairs AND !$request->subrepairs)
+            return parent::error("Не выбрано ниодного пункта выполненных работ", 4005);
+
+        // Сбор данных по фотографиям
+        $photo = self::collectPhotoData($request);
+
+        // Данные для записи завершения заявки
+        $data = [
+            'applicationId' => $id,
+            'userId' => $request->__user->id,
+            'subUserId' => $request->useradd ? implode(",", $request->useradd) : null,
+            'repairs' => $request->repairs ? implode(",", $request->repairs) : null,
+            'subrepairs' => $request->subrepairs ? implode(",", $request->subrepairs) : null,
+            'files' => json_encode($photo),
+            'comment' => $request->comment,
+            'changefond' => $request->thisfonddone ? 1 : 0,
+        ];
+
+        if (!$service = ApplicationModel::createService($data))
+            return parent::error("Невозможно записать данные", 4006);
+
+        // Данные для обновления строки заявки
+        if ($request->thisfonddone) {
+            $update = [
+                'changedId' => $service,
+            ];
+        }
+        else {
+            $update = [
+                'done' => $service,
+                'changed' => 1,
+            ];
+        }
+
+        if (!ApplicationModel::updateApplicationRowForDone($id, $update))
+            return parent::error("Неполучилось обновсить данные заявки", 4007);
+
+        return parent::json([
+            'service' => $data,
+            'update' => $update,
+            'photo' => $photo,
+        ]);
+
+    }
+
+
+    /**
+     * Сбор данных загруженных фотографий
+     */
+    public static function collectPhotoData($request) {
+
+        $photo = [];
+
+        // Фото передка машины
+        if ($request->photo_bus)
+            $photo['photo_bus'] = $request->photo_bus;
+
+        // Фото устройства
+        if ($request->photo_device)
+            $photo['photo_device'] = $request->photo_device;
+
+        // Фото экрана
+        if ($request->photo_screen)
+            $photo['photo_screen'] = $request->photo_screen;
+
+        // Проверка дополнительных фотографий
+        if (is_array($request->required)) {
+
+            $photo['change'] = [
+                'new' => [],
+                'old' => [],
+            ];
+
+            foreach ($request->required as $required) {
+
+                $arr = explode("_", $required);
+
+                if ($arr[0] == "new")
+                    $photo['change']['new'][$arr[3]] = $request->$required;
+                else
+                    $photo['change']['old'][$arr[3]] = $request->$required;
+
+            }
+
+        }
+
+        return $photo;
+
+    }
+
+
+    /**
+     * Поиск колллег
+     */
+    public static function searchCollegue(Request $request) {
+
+        $request->search = str_replace(" ", "", $request->search);
+
+        $users = \App\Http\Controllers\Admin\Users::searchCollegue($request);
+
+        return parent::json([
+            'users' => $users,
         ]);
 
     }

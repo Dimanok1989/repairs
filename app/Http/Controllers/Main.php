@@ -145,7 +145,7 @@ class Main
             ['декабрь','декабря','дек'],
         ];
 
-        $m = date("n", $time);
+        $m = date("n", $time) - 1;
 
         return $months[$m][$type] ?? false;
 
@@ -229,20 +229,25 @@ class Main
             return $fio;
 
         switch ($type) {
-            case '1':
+            case 0:
                 $fio = $firstname;
-                $fio .= $lastname ? " " . mb_substr($lastname, 0, 1) . "." : "";
-                $fio .= $fathername ? " " . mb_substr($fathername, 0, 1) . "." : "";
+                $fio .= $lastname ? " " . $lastname : "";
+                $fio .= $fathername ? " " . $fathername : "";
                 break;
 
-            case '2':
+            case 1:
+                $fio = $firstname;
+                $fio .= $lastname ? " " . mb_substr($lastname, 0, 1) . "." : "";
+                $fio .= $fathername ? "" . mb_substr($fathername, 0, 1) . "." : "";
+                break;
+
+            case 2:
             case 'sb':
                 $fio = $lastname ? $lastname : "";
                 $fio .= $fathername ? " " . $fathername : "";
                 $fio .= $firstname ? " " . mb_substr($firstname, 0, 1) . "." : "";
                 break;
-            
-            case '0':
+                
             default:
                 $fio = $firstname;
                 $fio .= $lastname ? " " . $lastname : "";

@@ -48,6 +48,26 @@ class ProjectModel
         ->get();
 
     }
+
+    /**
+     * Список открытого доступа к заказчику по идентификаторам сотрудников или групп
+     * 
+     * @param Int $id Идентификатор заказчика
+     * @param Int $type 1 - Группа, 2 - Сотрудник
+     * @param Array $ids
+     */
+    public static function getAccessDoneProjectList($id, $type = 1, $ids) {
+
+        return DB::table('projects_access')
+        ->where([
+            ['projectId', $id],
+            ['typeAccess', $type],
+            ['access', 1]
+        ])
+        ->whereIn('typeId', $ids)
+        ->get();
+
+    }
     
     /**
      * Обновление строк доступа к заказчикам
@@ -113,12 +133,29 @@ class ProjectModel
     }
 
     /**
+     * Список пунктов завершения
+     */
+    public static function getProjectRepairsList($ids) {
+
+        return DB::table('project_repair')->whereIn('id', $ids)->get();
+
+    }
+
+    /**
+     * Список подпунктов завершения
+     */
+    public static function getProjectSubRepairsList($ids) {
+
+        return DB::table('project_repair_subpoints')->whereIn('id', $ids)->get();
+
+    }
+
+    /**
      * Сохранение нового пункта неисправности
      */
     public static function createNewPointBreak($data) {
 
-        return DB::table('project_break')
-        ->insertGetId($data);
+        return DB::table('project_break')->insertGetId($data);
 
     }
 

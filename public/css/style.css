@@ -92,12 +92,15 @@ textarea { resize: none; }
     right: 0;
     background-color: #ffffffbf;
 }
-.looooo {
+.block-added-photo { position: relative; }
+.image-loading, .looooo {
     position: absolute;
     top: 0;
     left: 0;
     bottom: 0;
     right: 0;
+}
+.looooo {
     background-color: #ffffffbf;
 }
 
@@ -232,6 +235,47 @@ button.close {
 .for-new-comment {
     outline: none;
 }
+
+.img-content {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1030;
+    background: #000000c4;
+}
+.img-content > img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    margin: auto;
+    max-width: 99%;
+    max-height: 99%;
+    border-radius: 5px;
+}
+.img-content > button {
+    position: absolute;
+    z-index: 2;
+    top: 15px;
+    right: 15px;
+    opacity: .7;
+}
+
+.img-content > .next,
+.img-content > .back {
+    position: absolute;
+    z-index: 3;
+    width: 150px;
+    top: 60px;
+    bottom: 10px;
+}
+.img-content > .next { right: 10px; }
+.img-content > .back { left: 10px; }
 
 
 @-webkit-keyframes pulse {

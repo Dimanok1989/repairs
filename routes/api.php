@@ -27,6 +27,8 @@ Route::match(['get','post'], '/addNewApplication', 'Service\Application@addNewAp
 Route::match(['get','post','file'], '/uploadImagesAddApplication', 'Service\Application@uploadImagesAddApplication');
 /** Полные данные одной заявки */
 Route::match(['get','post'], '/getOneApplicationData', 'Service\Application@getOneApplicationData');
+/** Удаление файла */
+Route::match(['get','post'], '/deleteFile', 'Service\Application@deleteFile');
 
 
 /** Запросы авторизированных пользователей */
@@ -52,6 +54,16 @@ Route::group([
         
         /** Начало процесса завешения заявки */
         Route::match(['get','post'], '/doneApplicationStart', 'Service\Application@doneApplicationStart');
+        /** Загрузка файла при завершении заявки */
+        Route::post('/uploadFileForDone', 'Service\Application@uploadFileForDone');
+
+        /** Завршение заявки */
+        Route::match(['get','post'], '/applicationDone', 'Service\Application@applicationDone');
+
+        /** Поиск коллег */
+        Route::match(['get','post'], '/searchCollegue', 'Service\Application@searchCollegue');
+        /** Добавление/Удаление коллеги из избранного */
+        Route::match(['get','post'], '/userFavorit', 'Admin\Users@userFavorit');
 
     });
 

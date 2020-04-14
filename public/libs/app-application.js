@@ -2,6 +2,7 @@ function Application() {
 
     /** Токен пользователя */
     this.token = $('meta[name="token"]').attr('content');
+    this.tempToken = false; // Временный токен неавторизиированного пользователя
 
     /** Объект модального окна */
     this.modal;
@@ -243,7 +244,6 @@ function Application() {
 
         app.ajax(`/api/getOneApplicationData`, data, json => {
 
-            console.log(json.data.buttons);
             this.data = json.data;
 
             $('.loading-in-body').removeClass('d-flex');
@@ -251,8 +251,13 @@ function Application() {
             // Вывод заявки
             $('#content-application').append(this.getHtmlOneApplicationRequest(json.data.application));
 
+            // Добавление изображений в список файлов
+            $.each(json.data.application.imagesData, (file,image) => {
+                app.fileList[image.id] = image;
+            });
+
             // Блок комментариев
-            this.addBlockComment();
+            this.addBlockService().addBlockComment();
             
             // Вывод кнопок
             $('#content-application').append(this.getHtmlApplicationsButtonsRow(json.data));
@@ -264,6 +269,21 @@ function Application() {
     }
     /** HTML блок заявки */
     this.getHtmlOneApplicationRequest = row => {
+
+        // Блок с фотографиями
+        let images = '';
+
+        $.each(row.imagesData, (i,img) => {
+            images += `<div class="col mt-3 mb-2 px-1 hover-link">
+                <div class="card h-100" data-id="${img.id}" onclick="app.showImg(this);">
+                    <div class="item-responsive item-16by9">
+                        <div class="item-responsive-content"></div>
+                        <img src="${img.link}" class="d-none" alt="${img.name}" onload="application.loadedImg(this);">
+                    </div>
+                </div>
+            </div>`;
+        });
+
 
         return `<div class="card text-left my-3" id="application-request">
             <div class="card-body py-2">
@@ -287,6 +307,8 @@ function Application() {
                     ${row.changed ? `<i class="fas fa-exchange-alt text-danger mr-3" title="Подменный фонд" data-toggle="tooltip"></i>` : ``}
                     ${row.del ? `<span class="mr-3 text-danger"><i class="fas fa-trash" title="Удалена" data-toggle="tooltip"></i> Удалена</span>` : ``}
                 </div>
+
+                <div class="card-group">${images}</div>
                 
             </div>
         </div>`;
@@ -348,6 +370,61 @@ function Application() {
         return `<div class="d-flex justify-content-between" id="application-panel">
             <div class="text-left">${left}</div>
             <div class="text-right">${right}</div>
+        </div>`;
+
+    }
+
+    /** Добавление блоков сервиса */
+    this.addBlockService = () => {
+
+        if (!this.data.service)
+            return this;
+
+        $.each(this.data.service, (i,row) => {
+
+            // Добавление изображений в список файлов
+            $.each(row.imagesData, (file,image) => {
+                app.fileList[image.id] = image;
+            });
+
+            let html = this.getHtmlRowService(row);
+
+            $('#content-application').append(html);
+
+        });
+
+        return this;
+
+    }
+
+    /** html блока сервиса */
+    this.getHtmlRowService = row => {
+
+        // Блок с фотографиями
+        let images = '';
+
+        $.each(row.imagesData, (i,img) => {
+            images += `<div class="col mt-3 mb-2 px-1 hover-link">
+                <div class="card h-100" data-id="${img.id}" onclick="app.showImg(this);">
+                    <div class="item-responsive item-16by9">
+                        <div class="item-responsive-content"></div>
+                        <img src="${img.link}" class="d-none" alt="${img.name}" onload="application.loadedImg(this);">
+                    </div>
+                </div>
+            </div>`;
+        });
+
+        return `<div class="card my-3 text-left">
+            <div class="card-body py-2">
+                <div class="d-flex justify-content-between align-items-center">
+                    <strong>${row.changefond ? 'Подменный фонд' : 'Сервис'}</strong>
+                    <small class="opacity-80">${row.dateAdd}</small>
+                </div>
+                <p class="my-0 font-weight-light">${row.usersList}</p>
+                <p class="my-0 font-weight-light">${row.repairsList}</p>
+                ${row.comment ? `<p class="mb-1 font-weight-light font-italic"><i class="fas fa-quote-left opacity-50 mr-2"></i>${row.comment}</p>` : ``}
+                <div class="card-group">${images}</div>
+            </div>
         </div>`;
 
     }
@@ -610,6 +687,7 @@ function Application() {
     }
 
     /** Формирование страницы завршения заявки */
+    this.application = {};
     this.doneApplicationStart = e => {
 
         $(e).prop('disabled', true).find('i')
@@ -626,7 +704,7 @@ function Application() {
             .removeClass('fa-spin fa-spinner').addClass('fa-check-square');
 
             let appli = json.data.application;
-            console.log(appli);
+            this.application = appli;
 
             // Пункты завершения заявки
             let htmlrepairs = "";
@@ -640,12 +718,12 @@ function Application() {
                 }
                 else {
 
-                    htmlrepairs += `<div class="custom-control custom-checkbox">
-                        <input type="checkbox" class="custom-control-input" id="checkbox-point-${row.id}" data-for="${row.id}" onclick="application.checkMasterPoint(this);" data-master="${row.id}" onchange="application.searchChangeAndFondPoint(this);"${row.subpoints.length > 0 ? '' : ' disabled'}>
+                    htmlrepairs += row.subpoints.length > 0 ? `<div class="custom-control custom-checkbox">
+                        <input type="checkbox" class="custom-control-input" id="checkbox-point-${row.id}" data-for="${row.id}" onclick="application.checkMasterPoint(this);" data-master="${row.id}" onchange="application.searchChangeAndFondPoint(this);">
                         <label class="custom-control-label" for="checkbox-point-${row.id}">${row.name}</label>
-                    </div>`;
+                    </div>` : '';
                     
-                    htmlrepairs += `<div id="subpoints-for-${row.id}">`;
+                    htmlrepairs += `<div class="subpoints-content" id="subpoints-for-${row.id}">`;
                     $.each(row.subpoints, (key,sub) => {
 
                         htmlrepairs += `<div class="custom-control custom-checkbox ml-4">
@@ -660,6 +738,17 @@ function Application() {
 
             });
 
+            if (htmlrepairs == "")
+                htmlrepairs = '<div class="text-center text-muted my-4">Пункты не настроены</div>';
+
+
+            // Список коллег из избранного
+            let collegue = ``;
+            $.each(json.data.favorites, (i,row) => {
+                collegue += this.getHtmlRowCheckboxCollegue(row);
+            });
+
+
             $('#content').append(`<form class="mt-3 mx-auto" id="content-application-done" style="max-width: 700px;">
                 <div class="card my-3" id="content-application-done-card">
                     <div class="card-body py-3">
@@ -668,39 +757,53 @@ function Application() {
                         <div class="font-weight-bold"><i class="fas fa-bus"></i> ${appli.bus}</div>
                         <small>${appli.breaksListText}</small>
                         <hr />
+
+                        <div class="position-relative">
+                            <div class="font-weight-bold mb-2">Совместное выполнение</div>  
+                            <div class="input-group flex-nowrap" id="search-collegue-block"  data-toggle="dropdown">
+                                <input type="text" class="form-control" placeholder="Поиск коллеги..." aria-label="Поиск коллеги..." aria-describedby="addon-wrapping" id="search-collegue">
+                            </div>
+                            <div class="dropdown-menu w-100 shadow" id="search-result" aria-labelledby="search-collegue">
+                                <p class="text-muted mb-0 px-3">Начните поиск по ФИО или логину</p>
+                            </div>
+                        </div>
+                        <div id="collegue-list">${collegue}</div>
+                        <hr />
+
                         <div class="font-weight-bold mb-2">Выполненные работы</div>  
-                        <div id="repair-points" class="text-left px-3">${htmlrepairs}</div>
+                        <div id="repair-points" class="text-left">${htmlrepairs}</div>
                         <hr />
                         <div class="font-weight-bold mb-3">Загрузите фотографии</div>
                         <div class="px-2 position-relative text-left" id="files-list">
-                            <div class="px-2">
+                            <div class="py-1 px-2 block-added-photo">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <p class="m-0">Фото передней части</p>
-                                    <button type="button" class="btn btn-primary btn-sm btn-add-photo" onclick="$('#input-for-photo').trigger('click');">
+                                    <button type="button" class="btn btn-primary btn-sm btn-add-photo" onclick="$(this).parent().find('input[type=file]').trigger('click');">
                                         <i class="fa fa-plus" aria-hidden="true"></i>
                                     </button>
+                                    <input type="file" class="d-none" accept="image/*" onchange="application.uploadFileForDone(this);" data-name="photo_bus" />
                                 </div>
                             </div>
                             <hr />
-                            <div class="px-2">
+                            <div class="py-1 px-2 block-added-photo">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <p class="m-0">Фото устройства</p>
-                                    <button type="button" class="btn btn-primary btn-sm btn-add-photo" onclick="$('#input-for-photo').trigger('click');">
+                                    <button type="button" class="btn btn-primary btn-sm btn-add-photo" onclick="$(this).parent().find('input[type=file]').trigger('click');">
                                         <i class="fa fa-plus" aria-hidden="true"></i>
                                     </button>
+                                    <input type="file" class="d-none" accept="image/*" onchange="application.uploadFileForDone(this);" data-name="photo_device" />
                                 </div>
                             </div>
                             <hr />
-                            <div class="px-2">
+                            <div class="py-1 px-2 block-added-photo">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <p class="m-0">Фото экрана</p>
-                                    <button type="button" class="btn btn-primary btn-sm btn-add-photo" onclick="$('#input-for-photo').trigger('click');">
+                                    <button type="button" class="btn btn-primary btn-sm btn-add-photo" onclick="$(this).parent().find('input[type=file]').trigger('click');">
                                         <i class="fa fa-plus" aria-hidden="true"></i>
                                     </button>
+                                    <input type="file" class="d-none" accept="image/*" onchange="application.uploadFileForDone(this);" data-name="photo_screen" />
                                 </div>
                             </div>
-                            <input type="file" class="d-none" accept="image/*" id="input-for-photo" />
-                            <input type="file" class="d-none" accept="image/*" id="input-for-changed-photo" data-changed="1" />
                         </div>
                     </div>
                 </div>
@@ -708,9 +811,74 @@ function Application() {
                     <button type="button" class="btn btn-dark mb-3" onclick="application.doneApplicationCansel(this);">Отмена</button>
                     <button type="button" class="btn btn-success mb-3" onclick="application.doneApplicationSave(this);">Завершить</button>
                 </div>
+                <input type="hidden" value="${appli.id}" name="id" />
+                ${appli.changed ? '<input type="hidden" value="1" name="thisfonddone" />' : ''}
             </form>`);
 
+            $('#content-application-done').submit(function() {
+                return false;
+            });
+                
+
+            $('#search-collegue').autocomplete({
+                source: application.searchCollegue,
+                minLength: 0,
+            });
+
         });
+
+    }
+
+    this.getHtmlRowCheckboxCollegue = row => {
+        return `<div class="d-flex justify-content-between align-items-center mt-2" id="checkbox-line-user-${row.id}">
+            <div class="custom-control custom-checkbox text-left">
+                <input type="checkbox" class="custom-control-input" id="user-add-${row.id}" name="useradd[]" value="${row.id}" />
+                <label class="custom-control-label" for="user-add-${row.id}">${row.fio}</label>
+            </div>
+            ${row.favorit == "none" ? `<i class="fas fa-star fa-for-hover text-warning" onclick="application.userFavorit(this);" data-id="${row.id}"></i>` : `<i class="${row.favorit ? `fas fa-star` : `far fa-star`} fa-for-hover${row.favorit ? ` text-warning` : ``}" onclick="application.userFavorit(this);" data-id="${row.id}"></i>`}
+        </div>`;
+    }
+
+    this.searchResultUsers = {};
+    this.searchCollegue = (request, responce) => {
+
+        let data = {
+            projectId: this.application.clientId,
+            search: String(request.term).trim(),
+        }
+
+        app.ajax(`/api/token${this.token}/service/searchCollegue`, data, json => {
+
+            $('#search-collegue-block').dropdown('show');
+
+            $('#search-result').empty();
+
+            this.searchResultUsers = json.data.users;
+
+            $.each(json.data.users, (i,row) => {
+                $('#search-result').append(`<button class="dropdown-item" type="button" onclick="application.selectUserAddFromSearch(this);" data-key="${i}">${String(row.fio).replace(data.search, `<mark class="p-0">${data.search}</mark>`)} <b>@${String(row.login).replace(data.search, `<mark class="p-0">${data.search}</mark>`)}</b>${row.favorit > 0 ? ` <i class="fas fa-star text-warning"></i>` : ``}</button>`);
+            });
+
+            if (!json.data.users.length)
+                $('#search-result').append(`<p class="text-muted mb-0 px-3">По запросу "<b>${data.search}</b>" ничего не найдено</p>`);
+
+        });
+
+    }
+
+    /** Выбор пользователя для совместного выполнения */
+    this.selectUserAddFromSearch = e => {
+
+        let key = $(e).data('key');
+        $('#search-collegue-block').dropdown('hide');
+
+        if (!$(`#collegue-list #checkbox-line-user-${this.searchResultUsers[key].id}`).length)
+            $('#collegue-list').append(this.getHtmlRowCheckboxCollegue(this.searchResultUsers[key]));
+        
+        $(`input#user-add-${this.searchResultUsers[key].id}`).prop('checked', true);
+
+        $('#search-collegue').val('');
+        $('#search-result').html(`<p class="text-muted mb-0 px-3">Начните поиск по ФИО или логину</p>`);
 
     }
 
@@ -764,20 +932,26 @@ function Application() {
             else {
                 $('#files-list').append(`<div class="element-for-changed-photo" id="photo-${row.type}-${row.val}">
                     <hr />
-                    <div class="d-flex justify-content-between align-items-center px-2">
-                        <p class="m-0">${row.name} (фото старого)</p>
-                        <button type="button" class="btn btn-primary btn-sm btn-add-photo" onclick="$('#input-for-changed-photo').trigger('click');">
-                            <i class="fa fa-plus" aria-hidden="true"></i>
-                        </button>
-                        <input type="hidden" class="input-for-changed-photo" name="reqired[]" value="old_photo_${row.type}_${row.val}" />
+                    <div class="py-1 px-2 block-added-photo">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <p class="m-0">${row.name} (фото старого)</p>
+                            <button type="button" class="btn btn-primary btn-sm btn-add-photo" onclick="$(this).parent().find('input[type=file]').trigger('click');">
+                                <i class="fa fa-plus" aria-hidden="true"></i>
+                            </button>
+                            <input type="hidden" class="input-for-changed-photo" name="required[]" value="old_photo_${row.type}_${row.val}" />
+                            <input type="file" class="d-none" accept="image/*" onchange="application.uploadFileForDone(this);" data-changed="1" data-name="old_photo_${row.type}_${row.val}" data-descr="${row.name} (фото старого)" />
+                        </div>
                     </div>
                     <hr />
-                    <div class="d-flex justify-content-between align-items-center px-2">
-                        <p class="m-0">${row.name} (фото нового)</p>
-                        <button type="button" class="btn btn-primary btn-sm btn-add-photo" onclick="$('#input-for-changed-photo').trigger('click');">
-                            <i class="fa fa-plus" aria-hidden="true"></i>
-                        </button>
-                        <input type="hidden" class="input-for-changed-photo" name="reqired[]" value="new_photo_${row.type}_${row.val}" />
+                    <div class="py-1 px-2 block-added-photo">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <p class="m-0">${row.name} (фото нового)</p>
+                            <button type="button" class="btn btn-primary btn-sm btn-add-photo" onclick="$(this).parent().find('input[type=file]').trigger('click');">
+                                <i class="fa fa-plus" aria-hidden="true"></i>
+                            </button>
+                            <input type="hidden" class="input-for-changed-photo" name="required[]" value="new_photo_${row.type}_${row.val}" />
+                            <input type="file" class="d-none" accept="image/*" onchange="application.uploadFileForDone(this);" data-changed="1" data-name="new_photo_${row.type}_${row.val}" data-descr="${row.name} (фото нового)" />
+                        </div>
                     </div>
                 </div>`);
             }
@@ -785,6 +959,7 @@ function Application() {
         });
     }
 
+    /** Отмена завршения заявки */
     this.doneApplicationCansel = e => {
 
         $('#content-application-done').remove();
@@ -820,11 +995,181 @@ function Application() {
     }
 
     /** Завершение заявки */
+    this.checkuseradd = false;
     this.doneApplicationSave = e => {
 
-        let data = $('#content-application-done').serializeArray();
+        let data = $('#content-application-done').serializeArray(),
+            checkuser = this.checkuseradd;
 
-        console.log(data);
+        $.each(data, (i,row) => {
+            if (row.name == "useradd[]")
+                checkuser = true;
+        });
+
+        if (!checkuser)
+            return $('#modal-no-useradd').modal('show');
+
+        $(e).prop('disabled', true);
+
+        app.ajax(`/api/token${this.token}/service/applicationDone`, data, json => {
+
+            $(e).prop('disabled', false);
+
+            if (json.error)
+                return app.globalAlert(json.error, json.done, json.code);
+
+            $(e).prop('disabled', true);
+            location.reload();
+
+        });
+
+    }
+    /** Завершение без коллеги */
+    this.applicationSaveNoUser = e => {
+        $('#modal-no-useradd').modal('hide');
+        this.checkuseradd = true;
+        this.doneApplicationSave();
+    }
+
+    /** Загрузка файла завершения заявок */
+    this.uploadFileForDone = e => {
+
+        let formData = new FormData(),
+            files = $(e).prop('files'),
+            block = $(e).parents('.block-added-photo'),
+            name = $(e).data('name'),
+            descr = $(e).data('descr');
+
+        // Пройти в цикле по всем файлам
+	    for (var i = 0; i < files.length; i++)
+            formData.append('images[]', files[i]);
+
+        formData.append('razdel', "appdone");
+
+        if (descr)
+            formData.append('description', descr);
+
+        app.file(`/api/token${this.token}/service/uploadFileForDone`, formData, json => {
+
+            setTimeout(() => {
+                block.find('.looooo').remove();
+            }, 600);
+            $(e).val('');
+
+            if (json.error)
+                return app.globalAlert(json.error, json.done, json.code);
+
+            $.each(json.data.files, (i,row) => {
+
+                if (row.error) {
+                    block.append(`<div class="input-group input-group-sm mt-2">
+                        <div class="input-group-prepend" title="${row.name}">
+                            <span class="text-danger font-weight-bold"><i class="fas fa-times"></i> Ошибка</span>
+                        </div>
+                        <input type="text" class="form-control" placeholder="Наименование файла" value="${row.error} (${row.name})" readonly />
+                    </div>`);
+                }
+                else {
+                    block.append(`<div class="input-group input-group-sm mt-2" id="file-added-${row.id}">
+                        <div class="input-group-prepend">
+                            <button class="btn btn-danger btn-delete-file" type="button" data-id="${row.id}" data-type="appdone" onclick="application.deleteFile(this);"><i class="fa fa-trash" aria-hidden="true"></i></button>
+                        </div>
+                        <input type="text" class="form-control" placeholder="Наименование файла" value="${row.name}" readonly />
+                        <div class="input-group-append">
+                            <button class="btn btn-success btn-show-file" type="button" data-id="${row.id}" onclick="app.showImg(this);"><i class="fa fa-eye" aria-hidden="true"></i></button>
+                        </div>
+                       <input type="hidden" value="${row.id}" name="${name}[]" />
+                    </div>`);
+
+                    app.fileList[row.id] = row;
+
+                }
+            });
+
+        }, () => {
+
+            block.append(`<div class="d-flex align-items-center looooo" style="z-index: 10;">
+                <div class="progress w-100">
+                    <div class="progress-bar bg-success" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+            </div>`);
+
+        }, percent => {
+
+            block.find('.progress-bar').css('width', percent+"%");
+            
+            if (percent > 99)
+                block.find('.progress-bar').addClass('progress-bar-striped progress-bar-animated');
+
+        }, err => {
+
+            setTimeout(() => {
+                block.find('.looooo').remove();
+            }, 600);
+            $(e).val('');
+
+            return app.globalAlert("Сервер не справился с загрузкой файлов, если Вы загружаете одновременно несколько файлов, попробуйте загрузить их по одному. Если ошибка повторится, то обновите страницу и попробуйте загрузить файлы снова и, если ошибка повторится, обратитесь к администрации сайта", "error", err.status);
+
+        }, true);
+
+    }
+
+    this.deleteFile = e => {
+
+        let data = {
+            id: $(e).data('id'),
+            token: this.token,
+            tempToken: this.tempToken,
+        };
+
+        app.deleteFile(data, json => {
+
+            $('#file-added-'+json.data.id).remove();
+
+        });
+
+    }
+
+    /** Добавление/Удаление коллеги из избранного */
+    this.userFavorit = e => {
+
+        let data = {
+            id: $(e).data('id'),
+        };
+
+        $(e).removeAttr('onclick');
+
+        $(e).animate({fontSize: '110%'}, 50)
+        .animate({fontSize: '90%'}, 50)
+        .animate({fontSize: '110%'}, 50)
+        .animate({fontSize: '90%'}, 50)
+        .animate({fontSize: '100%'}, 50);
+
+        let animate = setInterval(() => {
+
+            $(e).animate({fontSize: '110%'}, 50)
+            .animate({fontSize: '90%'}, 50)
+            .animate({fontSize: '110%'}, 50)
+            .animate({fontSize: '90%'}, 50)
+            .animate({fontSize: '100%'}, 50);
+            
+        }, 200);
+
+        app.ajax(`/api/token${this.token}/service/userFavorit`, data, json => {
+
+            $(e).attr('onclick', 'application.userFavorit(this);');
+
+            clearInterval(animate);
+
+            if (json.error)
+                return app.globalAlert(json.error, json.done, json.code);
+
+            if (json.data.add)
+                $(e).removeClass('fas far text-warning').addClass('fas text-warning');
+            else
+                $(e).removeClass('fas far text-warning').addClass('far');
+
+        });
 
     }
 

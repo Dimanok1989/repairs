@@ -60,14 +60,24 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <form class="modal-body text-left">
-                
-                
-                
-            </form>
+            <form class="modal-body text-left"></form>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Отмена</button>
                 <button type="button" class="btn btn-primary" id="save-data" onclick="application.applicationCombine(this);" disabled>Объединить</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="modal-no-useradd" data-backdrop="static" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content text-center">
+            <div class="modal-body text-center">
+                <h6>Вы не выбрали коллегу для совместного выполнения заявки, продолжить или вернуться?</h6>
+                <div class="mt-4 d-flex justify-content-between">
+                    <button type="button" class="btn btn-primary mx-2" data-dismiss="modal">Назад</button>
+                    <button type="button" class="btn btn-success mx-2" id="save-data" onclick="application.applicationSaveNoUser(this);">Продолжить</button>
+                </div>
             </div>
         </div>
     </div>

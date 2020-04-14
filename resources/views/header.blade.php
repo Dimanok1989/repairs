@@ -6,6 +6,10 @@
 
     <a href="/" class="ml-1 btn btn-sm btn-dark align-middle rounded-circle" title="Главная страница"><i class="fas fa-home"></i></a>
 
+    @if ($__user->access->applications == 1 OR $__user->access->admin == 1)
+        <a href="/add" class="ml-1 btn btn-sm btn-dark align-middle rounded-circle" title="Добавить заявку"><i class="fas fa-plus-square"></i></a>
+    @endif
+
     @if (Session::get('user'))
 
         <div class="btn-group float-right" role="group">
@@ -36,10 +40,19 @@
         <div class="list-group list-group-flush">
             {{-- <li class="list-group-item pt-4 pb-1 list-group-item-action disabled title-nav">Меню</li> --}}
             <a href="/" class="list-group-item py-1 list-group-item-action{{ route('mainpage') == url()->current() ? " active" : "" }}"><i class="fas fa-home mr-1"></i>Главная страница</a>
-            <a href="/add" class="list-group-item py-1 list-group-item-action{{ route('SelectForaddApplication') == url()->current() ? " active" : "" }}"><i class="fas fa-plus-square mr-1"></i>Добавить заявку</a>
-            <a href="/service" class="list-group-item py-1 list-group-item-action{{ strripos(url()->current(), "ru/service") ? " active" : "" }} disabled"><i class="fas fa-tools mr-1"></i>Сервис</a>
-            <a href="/inspection" class="list-group-item py-1 list-group-item-action disabled"><i class="fas fa-clipboard-list mr-1"></i>Приёмка</a>
-            <a href="/montage" class="list-group-item py-1 list-group-item-action{{ strripos(url()->current(), "ru/montage") ? " active" : "" }} disabled"><i class="fas fa-ruler-combined mr-1"></i>Монтаж</a>
+
+            @if ($__user->access->applications == 1 OR $__user->access->admin == 1)
+                <a href="/add" class="list-group-item py-1 list-group-item-action{{ route('SelectForaddApplication') == url()->current() ? " active" : "" }}"><i class="fas fa-plus-square mr-1"></i>Добавить заявку</a>
+                <a href="/service" class="list-group-item py-1 list-group-item-action{{ strripos(url()->current(), "ru/service") ? " active" : "" }} disabled"><i class="fas fa-tools mr-1"></i>Сервис</a>
+            @endif  
+
+            @if ($__user->access->inspection == 1 OR $__user->access->admin == 1)
+                <a href="/inspection" class="list-group-item py-1 list-group-item-action disabled"><i class="fas fa-clipboard-list mr-1"></i>Приёмка</a>
+            @endif
+
+            @if ($__user->access->montage == 1 OR $__user->access->admin == 1)
+                <a href="/montage" class="list-group-item py-1 list-group-item-action{{ strripos(url()->current(), "ru/montage") ? " active" : "" }} disabled"><i class="fas fa-ruler-combined mr-1"></i>Монтаж</a>
+            @endif
 
             @if ($__user->access->admin == 1)
                 <li class="list-group-item pt-4 pb-1 list-group-item-action disabled title-nav">Админка</li>
