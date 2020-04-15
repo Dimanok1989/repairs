@@ -19,7 +19,6 @@
 @endsection
 
 @section('script')
-<script src="/libs/app-application.js?{{ config('app.version') }}"></script>
 <script>
     application.getApplicationsList();
 </script>

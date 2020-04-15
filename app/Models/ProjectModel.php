@@ -135,7 +135,7 @@ class ProjectModel
     /**
      * Список пунктов завершения
      */
-    public static function getProjectRepairsList($ids) {
+    public static function getProjectRepairsList($ids = []) {
 
         return DB::table('project_repair')->whereIn('id', $ids)->get();
 
@@ -144,7 +144,7 @@ class ProjectModel
     /**
      * Список подпунктов завершения
      */
-    public static function getProjectSubRepairsList($ids) {
+    public static function getProjectSubRepairsList($ids = []) {
 
         return DB::table('project_repair_subpoints')->whereIn('id', $ids)->get();
 

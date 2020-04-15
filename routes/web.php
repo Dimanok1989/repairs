@@ -18,6 +18,21 @@ Route::get('/', 'Pages@main')->name('mainpage');
 /** Выход */
 Route::get('/logout', 'Pages@logout');
 
+Route::get('/tlg', function() {
+
+    $telegram = new \Telegram\Bot\Api('1136056493:AAFm7wi-YGn7tzuU7si4EhNMHEJqwfLnkDU');
+
+    $text = "*Test*\n_test_\n`Test`";
+
+    dd($telegram->sendMessage([
+        'chat_id' => '424548477', 
+        'text' => $text,
+        'parse_mode' => 'Markdown',
+    ]));
+
+});
+
+
 /** Админ панель */
 Route::group(['prefix' => 'admin'], function () {
 
@@ -73,20 +88,15 @@ Route::group(['prefix' => 'user'], function () {
 });
 
 
-/** Страница заявки */
-Route::get('/id{link}', 'Pages@showApplication')->name('application');
-
 /** Страница фильтра и поиска заявок */
 Route::get('/applications', 'Pages@showApplicationsList')->name('applicatioslist');
 Route::get('/applications{client}', 'Pages@showApplicationsList');
 
-/** Части html страниц */
-Route::group(['prefix' => 'parts'], function () {
+/** Страница заявки */
+Route::get('/id{link}', 'Pages@showApplication')->name('application');
 
-    /** Страница завершения заявки */
-    Route::get('/applicationdone', function() { return view('application.done'); });
-
-});
+/** Страница ленты работ */
+Route::get('/service', 'Pages@serviceWorkTape');
 
 /** Страница выбора заказчика для добавления заявки */
 Route::get('/add', 'Pages@SelectForaddApplication')->name('SelectForaddApplication');

@@ -7,11 +7,28 @@ function App() {
     this.user = {};
 
     /** Функция вызова для подгрузки данных при прокрутке страницы */
-    this.funcForScroll = false;
-    this.page = 0;
+    this.funcForScroll = false; // Функция, отвечающая за подгрузку данных
+    this.progress = false; // Активный процесс подгрузки данных
+    this.progressEnd = false; // Окончание данных дял подгрузки
+    this.page = 0; // Страница вывода подгрузки
 
     this.constructor = function() {
         this.checkToken();
+    }
+
+    /**
+     * Метод подгрузки страницы при прокрутке
+     */
+    this.scrollDoit = func => {
+
+        this.funcForScroll = func;
+
+        $(window).scroll(() => {
+            if ($(window).scrollTop() + $(window).height() >= $(document).height() - 200 && !this.progress && !this.progressEnd && typeof this.funcForScroll == "function") {
+                this.funcForScroll();
+            }
+        });
+
     }
 
     /**
@@ -222,6 +239,8 @@ function App() {
                 else
                     app.user = json.data;
 
+                console.log(json);
+
             });
         }
 
@@ -377,7 +396,7 @@ function App() {
     }
 
     /** Список файлов для вывода на весь экран */
-    this.fileList = {};
+    this.fileList = [];
     /** Вывод изображений на весь экран */
     this.showImg = e => {
 

@@ -135,24 +135,7 @@ class Application extends Main
                     $breaks[] = $break;
 
             // Определение иконки проекта
-            switch ($row->project) {
-                case '1':
-                    $row->projectIcon = "fa-video";
-                    break;
-
-                case '2':
-                    $row->projectIcon = "fa-compass";
-                    break;
-
-                case '3':
-                    $row->projectIcon = "fa-tv";
-                    break;
-                
-                default:
-                    $row->projectIcon = "fa-ellipsis-h";
-                    break;
-
-            }
+            $row->projectIcon = self::getIconProject($row->project);
 
             $row->dateAdd = parent::createDate($row->date); // Дата создания
             $row->dateAddTime = date("d.m.Y", strtotime($row->date)); // Дата создания
@@ -268,6 +251,35 @@ class Application extends Main
         }
         
         return $data;
+
+    }
+
+
+    /**
+     * Метод определения иконки проекта
+     */
+    public static function getIconProject($project) {
+
+        switch ($project) {
+            case '1':
+                $projectIcon = "fa-video";
+                break;
+
+            case '2':
+                $projectIcon = "fa-compass";
+                break;
+
+            case '3':
+                $projectIcon = "fa-tv";
+                break;
+            
+            default:
+                $projectIcon = "fa-ellipsis-h";
+                break;
+
+        }
+
+        return $projectIcon;
 
     }
 
@@ -417,7 +429,7 @@ class Application extends Main
             return parent::error("Возникла внутренняя ошибка. Попробуйте обновить страницу, повторить запрос и, если ошибка снова возникнет, обратитесь к администрации сайта", 1002);
 
         // Проверка данных заказчика
-        if (!$data = \App\Models\ProjectModel::getProjectsList($request->client))
+        if (!$client = \App\Models\ProjectModel::getProjectsList($request->client))
             return parent::error("Возникла внутренняя ошибка. Попробуйте обновить страницу, повторить запрос и, если ошибка снова возникнет, обратитесь к администрации сайта", 1003);
 
         // Данные авторизированного пользователя
@@ -451,9 +463,36 @@ class Application extends Main
 
         // Дополнение данных для вывода
         $data['id'] = $id;
+        $link = route('application', ['link' => parent::dec2link($id)]);
+
+        // Отправка сообщения в телеграм
+        if ($client->bottoken) {
+
+            // Список неисправностей
+            $breaklist = [];
+            foreach (ProjectModel::getProjectBreakList(false, $request->break) as $row)
+                $breaklist[] = $row->name;
+
+            $breaklist = implode("; ", $breaklist);
+
+            $proectname = \App\Http\Controllers\Admin\Projects::$projects[$request->project];
+            $emodjiproect = \App\Http\Controllers\Admin\Projects::emodjiproect($request->project);
+        
+            // Текст сообщения
+            $text = "Борт: *{$request->number}* %0A";
+            $text .= "Проект: {$proectname} {$emodjiproect} %0A";
+            $text .= "Принята заявка №{$id} %0A";
+            $text .= "Заявленная неисправность: _{$breaklist}_ %0A";
+            $text .= $request->comment ? "Комментарий: _{$request->comment}_ %0A" : "";
+            $text .= "Подробнее {$link}";
+
+            $telegram = \App\Http\Controllers\Telegram::sendMessage($client->botapi, $client->telegram, $text);
+
+        }
 
         return parent::json([
-            'link' => route('application', ['link' => parent::dec2link($id)]),
+            'telegram' => $telegram,
+            'link' => $link,
             'data' => $data,
         ]);
 
@@ -791,20 +830,62 @@ class Application extends Main
                 'changedId' => $service,
             ];
         }
-        else {
+        elseif ($request->thisfond) {
             $update = [
                 'done' => $service,
                 'changed' => 1,
             ];
         }
+        else {
+            $update = [
+                'done' => $service,
+            ];
+        }
 
         if (!ApplicationModel::updateApplicationRowForDone($id, $update))
-            return parent::error("Неполучилось обновсить данные заявки", 4007);
+            return parent::error("Неполучилось обновить данные заявки", 4007);
+        
+        if ($application = ApplicationModel::getApplicationData($id))
+            $application = self::getApplicationsListEditRow([$application])[0];
+
+        if ($application->bottoken AND $application->telegram) {
+
+            $proectname = \App\Http\Controllers\Admin\Projects::$projects[$application->clientId];
+            $emodjiproect = \App\Http\Controllers\Admin\Projects::emodjiproect($application->clientId);
+
+            // Список основных пунктов работ
+            $repairs = [];
+            if ($request->repairs)
+                foreach (ProjectModel::getProjectRepairsList($request->repairs) as $row)
+                    $repairs[] = $row->name;
+
+            if ($request->subrepairs)
+                foreach (ProjectModel::getProjectSubRepairsList($request->subrepairs) as $row)
+                    $repairs[] = $row->name;
+
+            sort($repairs);
+            $repairs = implode("; ", $repairs);
+
+            $link = route('application', ['link' => parent::dec2link($id)]);
+
+            // Текст сообщения
+            $text = "Борт: *{$application->bus}* %0A";
+            $text .= "Проект: {$proectname} {$emodjiproect} %0A";
+            $text .= "Заявка №{$id} выполнена ✅ %0A";
+            $text .= "Выполненные работы: _{$repairs}_ %0A";
+            $text .= "Заявленная неисправность: _{$application->breaksListText}_ %0A";
+            $text .= $request->comment ? "Комментарий: _{$request->comment}_ %0A" : "";
+            $text .= "Подробнее {$link}";
+
+            $telegram = \App\Http\Controllers\Telegram::sendMessage($application->bottoken, $application->telegram, $text);
+
+        }
 
         return parent::json([
             'service' => $data,
             'update' => $update,
             'photo' => $photo,
+            'telegram' => $telegram ?? false,
         ]);
 
     }
@@ -828,6 +909,9 @@ class Application extends Main
         // Фото экрана
         if ($request->photo_screen)
             $photo['photo_screen'] = $request->photo_screen;
+
+        if ($request->photo_other)
+            $photo['photo_other'] = $request->photo_other;
 
         // Проверка дополнительных фотографий
         if (is_array($request->required)) {

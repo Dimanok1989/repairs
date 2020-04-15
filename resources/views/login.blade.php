@@ -4,7 +4,7 @@
 
 <div class="d-flex justify-content-center align-items-center login-body">
 
-    <form class="p-2" id="login-form" style="max-width: 400px; width: 100%;">
+    <form class="p-2" id="login-form" style="max-width: 400px; width: 100%;" onsubmit="return false;">
         
         <div class="input-group mb-2">
             <div class="input-group-prepend">
@@ -20,7 +20,7 @@
             <input type="password" name="password" class="form-control" placeholder="Пароль" required>
         </div>
 
-        <button type="button" class="btn btn-primary" onclick="app.login(this);"><i class="fas fa-sign-in-alt"></i> Вход</button>
+        <button type="submit" class="btn btn-primary" onclick="app.login(this);"><i class="fas fa-sign-in-alt"></i> Вход</button>
 
     </form>
 

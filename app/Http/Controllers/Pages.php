@@ -11,6 +11,8 @@ use Cookie;
 use App\Models\UserModel;
 use App\Models\ApplicationModel;
 
+use Telegram\Bot\Api as Telegram;
+
 class Pages extends \App\Http\Controllers\Main
 {
 
@@ -134,9 +136,21 @@ class Pages extends \App\Http\Controllers\Main
     /** Страница нстроек личного кабинета */
     public static function userSettings(Request $request) {
 
-        dump(Session::get('user'), $_COOKIE);
+        // dump(Session::get('user'), $_COOKIE);
 
         return view('user.settings');
+
+    }
+
+    /**
+     * Страница ленты работ
+     */
+    public static function serviceWorkTape(Request $request) {
+
+        if (!Session::get('user'))
+            return redirect("/");
+
+        return view('application.worktape');
 
     }
 

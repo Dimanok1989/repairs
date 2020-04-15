@@ -30,7 +30,10 @@
         <script src="/libs/popper.min.js"></script>
         <script src="/libs/bootstrap-4.4.1-dist/js/bootstrap.min.js"></script>
 
-        <script src="/libs/app.js?{{ config('app.version') }}"></script>
+        <script src="/app/app.js?{{ config('app.version') }}"></script>
+        <script src="/app/app-admin.js?{{ config('app.version') }}"></script>
+        <script src="/app/app-application.js?{{ config('app.version') }}"></script>
+        <script src="/app/app-service.js?{{ config('app.version') }}"></script>
         @yield('script')
 
     </body>

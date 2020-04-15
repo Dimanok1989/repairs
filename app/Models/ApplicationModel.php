@@ -78,12 +78,25 @@ class ApplicationModel
     public static function getApplicationData($id) {
 
         $data = DB::table('applications')
-        ->select('applications.*', 'projects.login as clientLogin', 'projects.name as clientName')
-        ->join('projects', 'projects.id', '=', 'applications.clientId')
-        ->where('applications.id', $id)
-        ->limit(1)
-        ->get();
+        ->select(
+            'applications.*',
+            'projects.login as clientLogin',
+            'projects.name as clientName',
+            'projects.telegram',
+            'projects.bottoken'
+        )
+        ->join('projects', 'projects.id', '=', 'applications.clientId');
 
+        if (is_array($id))
+            $data = $data->whereIn('applications.id', $id);
+        else
+            $data = $data->where('applications.id', $id)->limit(1);
+        
+        $data = $data->get();
+        
+        if (is_array($id))
+            return $data;
+            
         return count($data) ? $data[0] : false;
 
     }

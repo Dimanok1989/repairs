@@ -29,6 +29,30 @@ class Projects extends Main
 
     }
 
+    public static function emodjiproect($id) {
+
+        switch ($id) {
+            case '1':
+                $emo = "🎥";
+                break;
+
+            case '2':
+                $emo = "📡";
+                break;
+
+            case '3':
+                $emo = "📟";
+                break;
+            
+            default:
+                $emo = "";
+                break;
+        }
+
+        return $emo;
+
+    }
+
     /**
      * Список проектов в заявок
      */
@@ -325,7 +349,7 @@ class Projects extends Main
         // Формирование данных
         $data = [
             'name' => $request->name,
-            'telegram' => $request->telegram ? str_replace("@", "", $request->telegram) : NULL,
+            'telegram' => $request->telegram,
             'access' => $request->access ? 1 : 0,
             'listpoints' => $request->listpoints ? 1 : 0,
         ];

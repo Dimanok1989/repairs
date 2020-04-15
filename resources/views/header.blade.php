@@ -43,7 +43,7 @@
 
             @if ($__user->access->applications == 1 OR $__user->access->admin == 1)
                 <a href="/add" class="list-group-item py-1 list-group-item-action{{ route('SelectForaddApplication') == url()->current() ? " active" : "" }}"><i class="fas fa-plus-square mr-1"></i>Добавить заявку</a>
-                <a href="/service" class="list-group-item py-1 list-group-item-action{{ strripos(url()->current(), "ru/service") ? " active" : "" }} disabled"><i class="fas fa-tools mr-1"></i>Сервис</a>
+                <a href="/service" class="list-group-item py-1 list-group-item-action{{ strripos(url()->current(), "ru/service") ? " active" : "" }}"><i class="fas fa-tools mr-1"></i>Лента работ</a>
             @endif  
 
             @if ($__user->access->inspection == 1 OR $__user->access->admin == 1)

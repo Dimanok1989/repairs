@@ -136,8 +136,5 @@
 @endsection
 
 @section('script')
-
-<script src="/libs/app-admin.js?{{ config('app.version') }}"></script>
 <script>admin.getUsersGroupsList();</script>
-
 @endsection

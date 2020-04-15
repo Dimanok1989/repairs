@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Storage;
 use Intervention\Image\Facades\Image;
 
 use App\Http\Controllers\Admin\Projects;
+use App\Http\Controllers\Service\Application;
 
 use App\Models\ApplicationModel;
 use App\Models\ServiceModel;
@@ -36,7 +37,7 @@ class Service extends Main
     /**
      * Метод сбора недостающих данных по сервису
      */
-    public static function getFullServicesData($rows) {
+    public static function getFullServicesData($rows, $appInfo = false) {
 
         $services = $temp = []; // Данные строк сервиса
 
@@ -44,6 +45,7 @@ class Service extends Main
         $users = []; // Список сотрудников
         $repairs = []; // Список пунктов выполненных работ
         $subrepairs = []; // Список подпунктов выполненных работ
+        $appids = []; // Идентификаторы заявок
 
         foreach ($rows as $row) {
 
@@ -93,6 +95,13 @@ class Service extends Main
                     $row->subrepairs[] = $subrepair;
             }
 
+            // Ссылка на заявку
+            $row->applicationLink = route('application', ['link' => parent::dec2link($row->applicationId)]);
+
+            // Идентификаторы заявок
+            if (!in_array($row->applicationId, $appids))
+                $appids[] = $row->applicationId;
+
             $temp[] = $row;
 
         }
@@ -124,6 +133,21 @@ class Service extends Main
         $subrepairsdata = [];
         foreach (ProjectModel::getProjectSubRepairsList($subrepairs) as $row)
             $subrepairsdata[$row->id] = $row;
+
+        // Получение данных заявки
+        $applicationsdata = [];
+        if ($appInfo) {
+
+            foreach (ApplicationModel::getApplicationData($appids) as $row) {
+
+                unset($row->telegram);
+                unset($row->bottoken);
+
+                $applicationsdata[$row->id] = $row;
+
+            }
+
+        }
 
 
         foreach ($temp as $row) {
@@ -159,6 +183,12 @@ class Service extends Main
                     $repairs[] = $subrepairsdata[$point]->name;
 
             $row->repairsList = implode("; ", $repairs);
+
+            // Добавление информации о заявке
+            $row->applicationData = $applicationsdata[$row->applicationId] ?? [];
+
+            // Иконка проекта
+            $row->projectIcon = Application::getIconProject($row->applicationData->clientId ?? false);
 
             $services[] = $row;
 
@@ -214,5 +244,40 @@ class Service extends Main
         return $ids;
 
     }
+
+
+    /**
+     * Метод вывода строк сервиса для ленты работ
+     */
+    public static function getWorkTape(Request $request) {
+
+        $tape = self::getWorkTapeData($request);
+
+        return parent::json($tape);
+
+    }
+
+    /**
+     * Получение данных для ленты работ
+     */
+    public static function getWorkTapeData(Request $request) {
+
+        $data = (Object)[];
+
+        $tape = ServiceModel::getWorkTapeData($request);
+
+        $data->service = self::getFullServicesData($tape, true);
+
+        // Всего страниц
+        $data->last = $tape->lastPage();
+
+        // Следующая страница
+        $data->next = $tape->currentPage() + 1;
+
+
+        return $data;
+
+    }
+
 
 }

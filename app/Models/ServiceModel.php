@@ -20,4 +20,17 @@ class ServiceModel
 
     }
 
+
+    /**
+     * Вывод строк для ленты
+     */
+    public static function getWorkTapeData($request) {
+    
+        return DB::table('applications_service as a')
+        ->join('applications as b', 'a.id', '=', 'b.done')
+        ->orderBy('a.id', 'DESC')->paginate(25);
+
+    }
+
+
 }

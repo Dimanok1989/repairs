@@ -192,6 +192,7 @@ button.close {
 
 .item-responsive {
     position: relative; /* относительное позиционирование */
+    overflow: hidden;
 }
 .item-responsive:before {
     display: block; /* отображать элемент как блок */
@@ -219,6 +220,13 @@ button.close {
     right: 0;
     bottom: 0;
     background: url(/css/img/ajax-loader-3.gif) 50% no-repeat;
+}
+.item-responsive > img {
+    position: absolute; /* абсолютное положение элемент */
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
 }
 
 .opacity-10 { opacity: .1; }

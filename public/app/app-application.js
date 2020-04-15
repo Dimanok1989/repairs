@@ -108,7 +108,7 @@ function Application() {
                         <div class="card h-100">
                             <div class="item-responsive item-16by9">
                                 <div class="item-responsive-content"></div>
-                                <img src="${row.link}" class="d-none" alt="${row.name}" onload="application.loadedImg(this);">
+                                <img src="${img.link}" class="d-none img-fluid" alt="${img.name}" onload="$(this).removeClass('d-none');">
                             </div>
                             <input type="hidden" name="images[]" value="${row.id}" />
                             <!-- <div class="card-body p-2">
@@ -251,11 +251,6 @@ function Application() {
             // Вывод заявки
             $('#content-application').append(this.getHtmlOneApplicationRequest(json.data.application));
 
-            // Добавление изображений в список файлов
-            $.each(json.data.application.imagesData, (file,image) => {
-                app.fileList[image.id] = image;
-            });
-
             // Блок комментариев
             this.addBlockService().addBlockComment();
             
@@ -274,11 +269,16 @@ function Application() {
         let images = '';
 
         $.each(row.imagesData, (i,img) => {
-            images += `<div class="col mt-3 mb-2 px-1 hover-link">
-                <div class="card h-100" data-id="${img.id}" onclick="app.showImg(this);">
+
+            app.fileList.push(img);
+
+            let imgId = app.fileList.length - 1;
+
+            images += `<div class="col mb-2 px-1 hover-link">
+                <div class="card h-100" data-id="${imgId}" onclick="app.showImg(this);">
                     <div class="item-responsive item-16by9">
                         <div class="item-responsive-content"></div>
-                        <img src="${img.link}" class="d-none" alt="${img.name}" onload="application.loadedImg(this);">
+                        <img src="${img.link}" class="d-none img-fluid" alt="${img.name}" onload="$(this).removeClass('d-none');">
                     </div>
                 </div>
             </div>`;
@@ -308,7 +308,7 @@ function Application() {
                     ${row.del ? `<span class="mr-3 text-danger"><i class="fas fa-trash" title="Удалена" data-toggle="tooltip"></i> Удалена</span>` : ``}
                 </div>
 
-                <div class="card-group">${images}</div>
+                <div class="row row-cols-2 row-cols-md-3${images != "" ? ' mt-3' : ''} px-2">${images}</div>
                 
             </div>
         </div>`;
@@ -382,11 +382,6 @@ function Application() {
 
         $.each(this.data.service, (i,row) => {
 
-            // Добавление изображений в список файлов
-            $.each(row.imagesData, (file,image) => {
-                app.fileList[image.id] = image;
-            });
-
             let html = this.getHtmlRowService(row);
 
             $('#content-application').append(html);
@@ -404,11 +399,16 @@ function Application() {
         let images = '';
 
         $.each(row.imagesData, (i,img) => {
-            images += `<div class="col mt-3 mb-2 px-1 hover-link">
-                <div class="card h-100" data-id="${img.id}" onclick="app.showImg(this);">
+
+            app.fileList.push(img);
+
+            let imgId = app.fileList.length - 1;
+
+            images += `<div class="col mb-2 px-1 hover-link">
+                <div class="card h-100" data-id="${imgId}" onclick="app.showImg(this);">
                     <div class="item-responsive item-16by9">
                         <div class="item-responsive-content"></div>
-                        <img src="${img.link}" class="d-none" alt="${img.name}" onload="application.loadedImg(this);">
+                        <img src="${img.link}" class="d-none img-fluid" alt="${img.name}" onload="$(this).removeClass('d-none');">
                     </div>
                 </div>
             </div>`;
@@ -423,7 +423,7 @@ function Application() {
                 <p class="my-0 font-weight-light">${row.usersList}</p>
                 <p class="my-0 font-weight-light">${row.repairsList}</p>
                 ${row.comment ? `<p class="mb-1 font-weight-light font-italic"><i class="fas fa-quote-left opacity-50 mr-2"></i>${row.comment}</p>` : ``}
-                <div class="card-group">${images}</div>
+                <div class="row row-cols-2 row-cols-md-3${images != "" ? ' mt-3' : ''} px-2">${images}</div>
             </div>
         </div>`;
 
@@ -773,6 +773,11 @@ function Application() {
                         <div class="font-weight-bold mb-2">Выполненные работы</div>  
                         <div id="repair-points" class="text-left">${htmlrepairs}</div>
                         <hr />
+                        <div class="input-group">
+                            <textarea class="form-control" name="comment" aria-label="Введите дополнительный комментарий..." placeholder="Введите дополнительный комментарий..." rows="5"></textarea>
+                        </div>
+
+                        <hr />
                         <div class="font-weight-bold mb-3">Загрузите фотографии</div>
                         <div class="px-2 position-relative text-left" id="files-list">
                             <div class="py-1 px-2 block-added-photo">
@@ -802,6 +807,16 @@ function Application() {
                                         <i class="fa fa-plus" aria-hidden="true"></i>
                                     </button>
                                     <input type="file" class="d-none" accept="image/*" onchange="application.uploadFileForDone(this);" data-name="photo_screen" />
+                                </div>
+                            </div>
+                            <hr />
+                            <div class="py-1 px-2 block-added-photo">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <p class="m-0">Прочее</p>
+                                    <button type="button" class="btn btn-primary btn-sm btn-add-photo" onclick="$(this).parent().find('input[type=file]').trigger('click');">
+                                        <i class="fa fa-plus" aria-hidden="true"></i>
+                                    </button>
+                                    <input type="file" class="d-none" accept="image/*" onchange="application.uploadFileForDone(this);" data-name="photo_other" />
                                 </div>
                             </div>
                         </div>

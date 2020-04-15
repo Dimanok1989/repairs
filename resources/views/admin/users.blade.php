@@ -143,8 +143,5 @@
 @endsection
 
 @section('script')
-
-<script src="/libs/app-admin.js?{{ config('app.version') }}"></script>
 <script>admin.getUsersList();</script>
-
 @endsection

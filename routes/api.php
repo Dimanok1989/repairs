@@ -65,6 +65,10 @@ Route::group([
         /** Добавление/Удаление коллеги из избранного */
         Route::match(['get','post'], '/userFavorit', 'Admin\Users@userFavorit');
 
+        /** Лента сервиса */
+        Route::match(['get','post'], '/getWorkTape', 'Service\Service@getWorkTape');
+
+
     });
 
 

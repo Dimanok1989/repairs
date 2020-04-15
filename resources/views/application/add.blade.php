@@ -106,13 +106,10 @@
 @endsection
 
 @section('script')
-
-<script src="/libs/app-application.js?{{ config('app.version') }}"></script>
 <script>
     $(function() {
         // let top = $('#head').outerHeight();
         // $('#loading-add-application').css('top', top+'px');
     });    
 </script>
-
 @endsection
