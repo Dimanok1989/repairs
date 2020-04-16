@@ -1,13 +1,13 @@
 @if (Session::get('user'))
 
-<div class="bg-dark text-light px-3 py-2 fixed-top">
+<div class="bg-dark text-light px-3 py-3 fixed-top">
 
-    @if (Session::get('user')) <button class="btn btn-sm btn-dark align-middle rounded-circle" onclick="app.openMenu();"><i class="fas fa-bars"></i></button> @endif
+    @if (Session::get('user')) <button class="btn btn-sm btn-dark align-middle rounded-circle2 fa-lg" onclick="app.openMenu();"><i class="fas fa-bars"></i></button> @endif
 
-    <a href="/" class="ml-1 btn btn-sm btn-dark align-middle rounded-circle" title="Главная страница"><i class="fas fa-home"></i></a>
+    <a href="/" class="ml-1 btn btn-sm btn-dark align-middle rounded-circle2 fa-lg" title="Главная страница"><i class="fas fa-home"></i></a>
 
     @if ($__user->access->applications == 1 OR $__user->access->admin == 1)
-        <a href="/add" class="ml-1 btn btn-sm btn-dark align-middle rounded-circle" title="Добавить заявку"><i class="fas fa-plus-square"></i></a>
+        <a href="/add" class="ml-1 btn btn-sm btn-dark align-middle rounded-circle2 fa-lg" title="Добавить заявку"><i class="fas fa-plus-square"></i></a>
     @endif
 
     @if (Session::get('user'))

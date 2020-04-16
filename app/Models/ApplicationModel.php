@@ -61,7 +61,11 @@ class ApplicationModel
         }
 
         $data = DB::table('applications')
-        ->select('applications.*', 'projects.login as clientLogin')
+        ->select(
+            'applications.*',
+            'projects.login as clientLogin',
+            'projects.name as clientName'
+        )
         ->join('projects', 'projects.id', '=', 'applications.clientId')
         ->where($where);
 
@@ -96,7 +100,7 @@ class ApplicationModel
         
         if (is_array($id))
             return $data;
-            
+
         return count($data) ? $data[0] : false;
 
     }

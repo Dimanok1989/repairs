@@ -8,6 +8,9 @@
 
 <div class="mt-4 mb-3 mx-auto" style="max-width: 800px;" id="applications-list" data-client="{{ request()->client ?? 0 }}" data-project="{{ request()->project ?? 0 }}">
 
+    <h2 id="name-client" class="mb-0">{{ $project->name }}</h2>
+    <p class="lead mb-4">{{ $projectName }}</p>
+
     <ul class="list-group" id="list-application"></ul>
 
     <div class="py-3 px-2 d-none text-center" id="loading-applications">
@@ -20,6 +23,8 @@
 
 @section('script')
 <script>
-    application.getApplicationsList();
+    $(document).ready(() => {
+        application.getApplicationsList();
+    });
 </script>
 @endsection

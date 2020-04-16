@@ -100,8 +100,13 @@ class Pages extends \App\Http\Controllers\Main
     /** Страница просмотра списка заявок по поиску */
     public static function showApplicationsList(Request $request) {
 
+        // Првоерка авторизации
+        if (!Session::get('user'))
+            return redirect("/");
+
         return view('application.list', [
-            
+            'projectName' => \App\Http\Controllers\Admin\Projects::$projects[$request->project],
+            'project' => \App\Models\ProjectModel::getProjectsList($request->client),
         ]);
 
     }

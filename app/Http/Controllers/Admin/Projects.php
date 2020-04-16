@@ -77,6 +77,27 @@ class Projects extends Main
     }
 
     /**
+     * Получение данных дял списка проектов
+     */
+    public static function getProjectsListData(Request $request) {
+
+        $data = (Object) []; // Объект на вывод
+
+        $rows = ProjectModel::getProjectsList();
+
+        $tape = ServiceModel::getWorkTapeData($request);
+
+        $data->service = self::getFullServicesData($tape, true);
+
+        // Всего страниц
+        $data->last = $tape->lastPage();
+
+        // Следующая страница
+        $data->next = $tape->currentPage() + 1;
+
+    }
+
+    /**
      * Получение всех данных раздела заказчика
      */
     public static function getProjectsData(Request $request) {

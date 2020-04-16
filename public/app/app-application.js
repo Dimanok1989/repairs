@@ -176,8 +176,9 @@ function Application() {
 
             $('#applications-list #loading-applications').addClass('d-none');
 
-            if (json.error || (this.lastApplicationId == 0 && Object.keys(json.data.applications).length == 0))
-                return $('#applications-list').prepend(`<h3 class="mt-4">Заявок не найдено</h3><p class="lead">Все заявки выполнены</p>`);
+            if (json.error || (this.lastApplicationId == 0 && Object.keys(json.data.applications).length == 0)) {
+                return $('#applications-list').append(`<p class="lead mt-4">Заявок не найдено</p>`);
+            }
 
             $.each(json.data.applications, (i,row) => {
 

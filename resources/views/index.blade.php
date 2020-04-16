@@ -14,7 +14,7 @@
 
     <body class="bg-light">
 
-        <div id="head" style="{{ isset($__user) ? 'padding-top: 47px;' : '' }}">
+        <div id="head" style="{{ isset($__user) ? 'padding-top: 63px;' : '' }}">
             @include('header')
         </div>
 

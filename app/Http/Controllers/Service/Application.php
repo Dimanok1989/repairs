@@ -50,6 +50,9 @@ class Application extends Main
 
             $applications[$key]->projects = Projects::getProjectsName();
 
+            foreach ($applications[$key]->projects as $projId => $value)
+                $applications[$key]->projectsIcon[$projId] = self::getIconProject($projId);
+
             $applications[$key]->applications = isset($countsclient[$application->id]) ? $countsclient[$application->id] : [];
 
             // Сумма всех заявок
@@ -267,10 +270,12 @@ class Application extends Main
 
             case '2':
                 $projectIcon = "fa-compass";
+                $projectIcon = "fa-satellite-dish";
                 break;
 
             case '3':
                 $projectIcon = "fa-tv";
+                $projectIcon = "fa-info-circle";
                 break;
             
             default:
@@ -486,7 +491,7 @@ class Application extends Main
             $text .= $request->comment ? "Комментарий: _{$request->comment}_ %0A" : "";
             $text .= "Подробнее {$link}";
 
-            $telegram = \App\Http\Controllers\Telegram::sendMessage($client->botapi, $client->telegram, $text);
+            $telegram = \App\Http\Controllers\Telegram::sendMessage($client->bottoken, $client->telegram, $text);
 
         }
 
