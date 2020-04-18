@@ -62,8 +62,6 @@ class Application extends Main
 
         }
 
-        // dump($applications);
-
         return $applications;
 
     }
@@ -77,7 +75,19 @@ class Application extends Main
         if (!parent::checkRight(['admin','applications'], $request->token))
             return parent::error("Доступ ограничен", 1001);
 
-        // Проверка прав доступа к заявкам заказчика
+        $data = self::getApplicationListData($request);
+
+        return parent::json($data);
+
+    }
+
+
+    /**
+     * Метод формирвоания строк заявок для вывода по частям
+     */
+    public static function getApplicationListData(Request $request) {
+
+        // Фильтрация заявок
         if ($request->client AND !in_array($request->client, $request->__user->clientsAccess))
             $request->client = [0];
         else if ($request->client AND in_array($request->client, $request->__user->clientsAccess)) {
@@ -87,9 +97,18 @@ class Application extends Main
         else
             $request->client = $request->__user->clientsAccess;
 
-        return parent::json([
-            'applications' => self::showApplicationsList($request),
-        ]);
+        // Список заявок по запросу
+        $applications = ApplicationModel::getApplicationsList($request);
+
+        // Массив с данными на вывод
+        $data = [
+            'applications' => self::getApplicationsListEditRow($applications),
+            'rows' => count($applications), // Количество строк для вывода
+            'last' => $applications->lastPage(), // Количество страниц
+            'next' => $applications->currentPage() + 1, // Номер следующей страницы
+        ];
+
+        return $data;
 
     }
 
@@ -158,6 +177,9 @@ class Application extends Main
             $row->combineData = []; // Данные объекдинённых заявок
             $row->combineLinks = []; // Список идентификаторов заявок
             $row->combineLink = $row->combine ? env('APP_URL') . "/id" . parent::dec2link($row->combine) : null;
+
+            // Дата удаления
+            $row->deleteDate = $row->del ? date("d.m.Y в H:i", strtotime($row->del)) : null;
 
             // Временные неполные данные заявок
             $temp[] = $row;
@@ -371,6 +393,10 @@ class Application extends Main
                     if (parent::checkRight(['admin','application_problem'], $user))
                         $buttons['problem'] = true;
 
+                    // Отмена заявки
+                    // if (parent::checkRight(['admin','applications_cansel'], $user))
+                    //     $buttons['cansel'] = true;
+
                 }
 
             }
@@ -496,7 +522,7 @@ class Application extends Main
         }
 
         return parent::json([
-            'telegram' => $telegram,
+            'telegram' => $telegram ?? false,
             'link' => $link,
             'data' => $data,
         ]);
@@ -793,6 +819,10 @@ class Application extends Main
         if (!$id)
             return parent::error("Неверный идентификатор", 4001);
 
+        // Проверка выбранных пунктов ремонта
+        if (!$request->repairs AND !$request->subrepairs)
+            return parent::error("Не выбрано ниодного пункта выполненных работ", 4005);
+
         // Проверка наличия загруженных фотографий
         if (!$request->photo_bus)
             return parent::error("Не загружено фото передка машины", 4002);
@@ -807,12 +837,54 @@ class Application extends Main
                 if (!$request->$required)
                     return parent::error("Не загружено одно из фото замены оборудования", 4004);
 
-        // Проверка выбранных пунктов ремонта
-        if (!$request->repairs AND !$request->subrepairs)
-            return parent::error("Не выбрано ниодного пункта выполненных работ", 4005);
-
         // Сбор данных по фотографиям
         $photo = self::collectPhotoData($request);
+
+        // Проверка наличия введенных серийных номеров
+        $serials = []; // Массив с данными для записи смены серийных номеров
+        $checkSerial = []; // Проверка введенных серийников
+
+        if (is_array($request->serials)) {
+
+            $tempdata = [
+                'repair' => [],
+                'subrepair' => [],
+            ];
+
+            foreach ($request->serials as $serial) {
+
+                // Проверка введенного серийника
+                if (!$request->$serial OR $request->$serial == "") {
+                    $checkSerial[] = $serial;
+                }
+                else {
+
+                    $input = explode("_", $serial);
+                    $type = $input[2] == "repairs" ? "repair" : "subrepair";
+
+                    // Старый или новый серийник
+                    $oldnew = $input[1] == "new" ? "serialNew" : "serialOld";
+                    $tempdata[$type][$input[3]][$oldnew] = $request->$serial;
+
+                    // Привязка к пункту или подпункту пемонта
+                    if ($input[2] == "repairs") {
+                        $tempdata[$type][$input[3]]['repairId'] = $input[3];
+                        $tempdata[$type][$input[3]]['subRepairId'] = NULL;
+                    }
+                    else {
+                        $tempdata[$type][$input[3]]['repairId'] = NULL;
+                        $tempdata[$type][$input[3]]['subRepairId'] = $input[3];
+                    }
+
+                }                
+
+            }
+
+        }
+
+        // Вывод ошибки не указанных серийников
+        if (count($checkSerial))
+            return parent::error("Введите серийные номера", 4008, $checkSerial);
 
         // Данные для записи завершения заявки
         $data = [
@@ -847,12 +919,29 @@ class Application extends Main
             ];
         }
 
+        // Обновление таблицы с заявкой
         if (!ApplicationModel::updateApplicationRowForDone($id, $update))
             return parent::error("Неполучилось обновить данные заявки", 4007);
         
+        // Обновленные данные заявки
         if ($application = ApplicationModel::getApplicationData($id))
             $application = self::getApplicationsListEditRow([$application])[0];
 
+        // Объединение данных серийников
+        foreach ($tempdata as $rows) {
+            foreach ($rows as $row) {
+                $row['serviceId'] = $service;
+                $row['busGarageNum'] = $application->bus;
+                $serials[] = $row;
+            }
+        }
+
+        // Запись данных по изменением серийников
+        if (count($serials))
+            \App\Models\ServiceModel::writeSerialsChangeNumber($serials);
+
+
+        // Отправка сообщения в телеграм
         if ($application->bottoken AND $application->telegram) {
 
             $proectname = \App\Http\Controllers\Admin\Projects::$projects[$application->clientId];
@@ -891,6 +980,8 @@ class Application extends Main
             'update' => $update,
             'photo' => $photo,
             'telegram' => $telegram ?? false,
+            'tempdata' => $tempdata,
+            'serials' => $serials,
         ]);
 
     }

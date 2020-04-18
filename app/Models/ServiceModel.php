@@ -27,8 +27,18 @@ class ServiceModel
     public static function getWorkTapeData($request) {
     
         return DB::table('applications_service as a')
+        ->select('a.*', 'b.bus')
         ->join('applications as b', 'a.id', '=', 'b.done')
         ->orderBy('a.id', 'DESC')->paginate(25);
+
+    }
+
+    /**
+     * Запись серийных номеров
+     */
+    public static function writeSerialsChangeNumber($arr) {
+
+        return DB::table('device_change_serials')->insert($arr);
 
     }
 

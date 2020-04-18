@@ -10,14 +10,13 @@
         <a href="/add" class="ml-1 btn btn-sm btn-dark align-middle rounded-circle2 fa-lg" title="Добавить заявку"><i class="fas fa-plus-square"></i></a>
     @endif
 
-    @if (Session::get('user'))
+    {{-- @if (Session::get('user'))
 
         <div class="btn-group float-right" role="group">
         <button id="user-menu" type="button" class="btn btn-sm btn-dark align-middle dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{{ $__user->login }} </button>
             <div class="dropdown-menu dropdown-menu-right" aria-labelledby="user-menu">
                 <a href="/user/settings" class="dropdown-item px-3{{ url()->current() == route('usersettings') ? " active" : "" }}" title="Настройки"><i class="fas fa-cogs mr-2"></i>Настройки</a>
                 @if ($__user->access->admin == 1) <a href="/admin" class="dropdown-item px-3{{ strripos(url()->current(), "/admin") ? " active" : "" }} disabled" title="Админ панель"><i class="fas fa-user-shield mr-2"></i>Админ панель</a> @endif
-                {{-- <a href="/settings" class="dropdown-item px-3{{ strripos(url()->current(), "/settings") ? " active" : "" }}" title="Выход"><i class="fas fa-users-cog mr-2"></i>Настройки</a> --}}
                 <div class="dropdown-divider"></div>
                 <a href="/logout" class="dropdown-item px-3" title="Выход"><i class="fas fa-sign-out-alt mr-2"></i>Выход</a>
             </div>
@@ -27,7 +26,7 @@
 
         <a href="/login" class="btn btn-sm btn-dark align-middle rounded-circle float-right" title="Авторизация"><i class="fas fa-sign-in-alt"></i></a>
 
-    @endif
+    @endif --}}
 
 </div>
 
@@ -53,6 +52,7 @@
             @if ($__user->access->montage == 1 OR $__user->access->admin == 1)
                 <a href="/montage" class="list-group-item py-1 list-group-item-action{{ strripos(url()->current(), "ru/montage") ? " active" : "" }} disabled"><i class="fas fa-ruler-combined mr-1"></i>Монтаж</a>
             @endif
+            <a href="/logout" class="list-group-item py-1 list-group-item-action" title="Выход"><i class="fas fa-sign-out-alt mr-1"></i>Выход</a>
 
             @if ($__user->access->admin == 1)
                 <li class="list-group-item pt-4 pb-1 list-group-item-action disabled title-nav">Админка</li>

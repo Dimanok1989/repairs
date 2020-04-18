@@ -6,7 +6,7 @@
 
     <h4 class="my-3">Группы пользователей</h4>
 
-    <ul id="list-groups" class="list-group mx-auto mt-4" style="max-width: 750px;"></ul>
+    <ul id="list-groups" class="list-group mx-auto mt-4 content-block-width"></ul>
 
     <div class="text-center" id="loading-rows">
         <div class="spinner-border spinner-border-sm" role="status">

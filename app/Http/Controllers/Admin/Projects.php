@@ -233,6 +233,7 @@ class Projects extends Main
             'name' => $request->name,
             'changed' => $request->forchanged ? 1 : 0,
             'fond' => $request->forchangedfond ? 1 : 0,
+            'serials' => $request->forchangedserials ? 1 : 0,
             'userIdAdd' => $request->__user->id ?? NULL,
             'master' => 0,
             'norm' => 0,
@@ -266,6 +267,7 @@ class Projects extends Main
             'name' => $request->name,
             'changed' => $request->forchanged ? 1 : 0,
             'fond' => $request->forchangedfond ? 1 : 0,
+            'serials' => $request->forchangedserials ? 1 : 0,
             'userIdAdd' => $request->__user->id ?? NULL,
             'norm' => $request->norma,
         ];

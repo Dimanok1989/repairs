@@ -108,7 +108,7 @@ function Application() {
                         <div class="card h-100">
                             <div class="item-responsive item-16by9">
                                 <div class="item-responsive-content"></div>
-                                <img src="${img.link}" class="d-none img-fluid" alt="${img.name}" onload="$(this).removeClass('d-none');">
+                                <img src="${row.link}" class="d-none img-fluid" alt="${row.name}" onload="$(this).removeClass('d-none');">
                             </div>
                             <input type="hidden" name="images[]" value="${row.id}" />
                             <!-- <div class="card-body p-2">
@@ -168,28 +168,43 @@ function Application() {
         let data = {
             client: $('#applications-list').data('client'),
             project: $('#applications-list').data('project'),
+            page: app.page,
         };
 
         $('#applications-list #loading-applications').removeClass('d-none');
+        app.progress = true;
 
         app.ajax(`/api/token${this.token}/service/getApplicationsList`, data, json => {
 
             $('#applications-list #loading-applications').addClass('d-none');
 
-            if (json.error || (this.lastApplicationId == 0 && Object.keys(json.data.applications).length == 0)) {
+            app.page = json.data.next;
+            app.progress = false;
+
+            app.scrollDoit(this.getApplicationsList);
+
+            if (json.error || (this.lastApplicationId == 0 && json.data.rows == 0))
                 return $('#applications-list').append(`<p class="lead mt-4">Заявок не найдено</p>`);
-            }
 
             $.each(json.data.applications, (i,row) => {
 
                 if (Number(row.id) > this.lastApplicationId)
                     this.lastApplicationId = Number(row.id);
 
-                $('#list-application').append(this.getHtmlApplicationListRow(row));
+                let html = this.getHtmlApplicationListRow(row);
+                $('#list-application').append(html);
 
                 // $('[data-toggle="tooltip"]').tooltip();
 
+                if (this.lastApplicationId < row.id)
+                    this.lastApplicationId = row.id;
+
             });
+
+            if (json.data.next > json.data.last) {
+                app.progressEnd = true;
+                $('#applications-list').append(`<small class="d-block my-2 opacity-40">Это все данные</small>`);
+            }
 
         });
 
@@ -208,7 +223,7 @@ function Application() {
             <div class="d-flex w-100 justify-content-between">
                 <div>
                     <span class="mr-2 opacity-50">#${row.id}</span>
-                    <span class="font-weight-bold">${row.bus} @${row.clientLogin}</span>
+                    <span class="font-weight-bold">${row.bus} <span class="ml-2">${row.clientName}</span></span>
                 </div>
                 <small>${row.dateAdd}</small>
             </div>
@@ -216,7 +231,7 @@ function Application() {
             ${row.comment ? `<p class="mb-2"><i class="fas fa-quote-left opacity-50 mr-1"></i>${row.comment}</p>` : ``}
             <div class="d-flex w-100 justify-content-left">
                 <div class="mr-3">
-                    <i class="fas ${row.projectIcon}"></i>
+                    <i class="fas ${row.projectIcon} opacity-50"></i>
                 </div>
                 <div class="mr-3">
                     <i class="fas fa-comments"></i>
@@ -306,7 +321,7 @@ function Application() {
                     ${row.problem ? `<i class="fas fa-exclamation-triangle text-danger mr-3" title="Проблемная заявка" data-toggle="tooltip"></i>` : ``}
                     ${row.combineData[0] ? `<div class="mr-3 font-weight-bold" title="Присоединённых заявок" data-toggle="tooltip"><i class="fas fa-network-wired"></i> ${row.combineData.length}</div>` : ``}
                     ${row.changed ? `<i class="fas fa-exchange-alt text-danger mr-3" title="Подменный фонд" data-toggle="tooltip"></i>` : ``}
-                    ${row.del ? `<span class="mr-3 text-danger"><i class="fas fa-trash" title="Удалена" data-toggle="tooltip"></i> Удалена</span>` : ``}
+                    ${row.del ? `<span class="mr-3 text-danger"><i class="fas fa-trash" title="Удалена" data-toggle="tooltip"></i></span>` : ``}
                 </div>
 
                 <div class="row row-cols-2 row-cols-md-3${images != "" ? ' mt-3' : ''} px-2">${images}</div>
@@ -319,7 +334,7 @@ function Application() {
     this.getHtmlStatusApplication = row => {
 
         if (row.del)
-            return '';
+            return `<div><span class="text-danger font-weight-bold">Удалена</span>${row.delComment ? (row.deleteDate ? ` ${row.deleteDate}` : '')+` по причине: ${row.delComment}` : ''}</div>`;
 
         if (row.combine)
             return `<div class="text-success font-weight-bold"><i class="fas fa-angle-double-right"></i> Присоединена к заявке #${row.combine}</div>`;
@@ -356,6 +371,9 @@ function Application() {
 
         if (data.buttons.combine)
             left += `<button type="button" class="btn btn-dark mb-3 mx-1" onclick="application.applicationCombineOpen(this);" title="Присоединить заявку"><i class="fas fa-network-wired" style="width: 20px;"></i></button>`;
+
+        if (data.buttons.cansel)
+            left += `<button type="button" class="btn btn-secondary mb-3 mx-1" onclick="application.applicationCansel(this);" title="Отменить заявку" id="app-cansel"><i class="fas fa-ban"></i></button>`;
 
         if (data.buttons.del)
             left += `<button type="button" class="btn btn-danger mb-3 mx-1" onclick="application.applicationDelete(this);" title="Удалить заявку" id="app-delete"><i class="fas fa-trash"></i></button>`;
@@ -600,6 +618,12 @@ function Application() {
 
     }
 
+    this.applicationCansel = e => {
+        $(e).blur();
+        this.modal = $('#modal-cansel-application');
+        this.modal.modal('show');
+    }
+
     this.applicationDelete = e => {
         $(e).blur();
         this.modal = $('#modal-delete-application');
@@ -609,6 +633,7 @@ function Application() {
         app.modalLoading(this.modal, 'show');
         let data = {
             id: this.data.application.id,
+            comment: this.modal.find('form textarea').val(),
         }
         app.ajax(`/api/token${this.token}/service/applicationDelete`, data, json => {
 
@@ -619,7 +644,9 @@ function Application() {
                 return $('#application-panel #app-delete').prop('disabled', true);;
 
             $('#application-panel').remove();
-            $('#application-request').replaceWith(this.getHtmlOneApplicationRequest(json.data.application));
+
+            let html = this.getHtmlOneApplicationRequest(json.data.application);
+            $('#application-request').replaceWith(html);
 
         });
     }
@@ -713,7 +740,7 @@ function Application() {
 
                 if (row.master == 0) {
                     htmlrepairs += `<div class="custom-control custom-checkbox">
-                        <input type="checkbox" class="custom-control-input" id="checkbox-point-${row.id}" name="repairs[]" value="${row.id}" data-change="${row.changed}" data-fond="${row.fond}" data-type="repairs" onchange="application.searchChangeAndFondPoint(this);">
+                        <input type="checkbox" class="custom-control-input" id="checkbox-point-${row.id}" name="repairs[]" value="${row.id}" data-change="${row.changed}" data-fond="${row.fond}" data-type="repairs" data-serials="${row.serials}" onchange="application.searchChangeAndFondPoint(this);">
                         <label class="custom-control-label" for="checkbox-point-${row.id}">${row.name}</label>
                     </div>`;
                 }
@@ -728,7 +755,7 @@ function Application() {
                     $.each(row.subpoints, (key,sub) => {
 
                         htmlrepairs += `<div class="custom-control custom-checkbox ml-4">
-                            <input type="checkbox" class="custom-control-input checkbox-point-${row.id}" id="checkbox-subpoint-${sub.id}" name="subrepairs[]" value="${sub.id}" onclick="application.checkSubPoint(this);" data-for="${row.id}" data-change="${sub.changed}" data-fond="${sub.fond}" data-type="subrepairs" onchange="application.searchChangeAndFondPoint(this);">
+                            <input type="checkbox" class="custom-control-input checkbox-point-${row.id}" id="checkbox-subpoint-${sub.id}" name="subrepairs[]" value="${sub.id}" onclick="application.checkSubPoint(this);" data-for="${row.id}" data-change="${sub.changed}" data-fond="${sub.fond}" data-type="subrepairs" data-serials="${sub.serials}" onchange="application.searchChangeAndFondPoint(this);">
                             <label class="custom-control-label" for="checkbox-subpoint-${sub.id}">${sub.name}</label>
                         </div>`;
 
@@ -750,7 +777,7 @@ function Application() {
             });
 
 
-            $('#content').append(`<form class="mt-3 mx-auto" id="content-application-done" style="max-width: 700px;">
+            $('#content').append(`<form class="mt-3 mx-auto content-block-width" id="content-application-done">
                 <div class="card my-3" id="content-application-done-card">
                     <div class="card-body py-3">
                         <h5 class="card-title mb-0">Завершение заявки</h5>
@@ -904,6 +931,7 @@ function Application() {
         let data = {
             master: $(e).data('master') ? $(e).data('master') : false,
             fond: false,
+            serials: false,
             change: 0,
             changeList: [],
         };
@@ -912,6 +940,7 @@ function Application() {
 
             let rowfond = $(this).data('fond') ? $(this).data('fond') : false,
                 rowchange = $(this).data('change') ? $(this).data('change') : false,
+                serials = $(this).data('serials') ? $(this).data('serials') : false,
                 rowid = $(this).attr('id'),
                 type = $(this).data('type'),
                 val = $(this).val(),
@@ -919,10 +948,15 @@ function Application() {
                 
             if ($(this).prop('checked') && rowfond)
                 data.fond = true;
+
             if ($(this).prop('checked') && rowchange) {
                 data.change += 1;
-                data.changeList.push({type, val, name});
+                data.changeList.push({type, val, name, serials});
             }
+
+            if ($(this).prop('checked') && serials)
+                data.serials = true;
+            
 
         });
 
@@ -937,8 +971,12 @@ function Application() {
 
     /** Скрытие/отображение формы замены оборудования */
     this.showHideFormPhotoChange = data => {
+
         $('#files-list .input-for-changed-photo').prop('disabled', true);
         $('#files-list .element-for-changed-photo').hide();
+
+        console.log(data);
+
         $.each(data, (i,row) => {
 
             if ($(`#files-list #photo-${row.type}-${row.val}`).length) {
@@ -957,6 +995,13 @@ function Application() {
                             <input type="hidden" class="input-for-changed-photo" name="required[]" value="old_photo_${row.type}_${row.val}" />
                             <input type="file" class="d-none" accept="image/*" onchange="application.uploadFileForDone(this);" data-changed="1" data-name="old_photo_${row.type}_${row.val}" data-descr="${row.name} (фото старого)" />
                         </div>
+                        ${row.serials ? `<div class="input-group mt-2">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text"><i class="fas fa-barcode"></i></span>
+                            </div>
+                            <input type="hidden" class="input-for-changed-photo" name="serials[]" value="serial_old_${row.type}_${row.val}" />
+                            <input type="text" class="form-control" placeholder="Серийный номер" aria-label="Серийный номер" name="serial_old_${row.type}_${row.val}">
+                        </div>` : ``}
                     </div>
                     <hr />
                     <div class="py-1 px-2 block-added-photo">
@@ -968,6 +1013,13 @@ function Application() {
                             <input type="hidden" class="input-for-changed-photo" name="required[]" value="new_photo_${row.type}_${row.val}" />
                             <input type="file" class="d-none" accept="image/*" onchange="application.uploadFileForDone(this);" data-changed="1" data-name="new_photo_${row.type}_${row.val}" data-descr="${row.name} (фото нового)" />
                         </div>
+                        ${row.serials ? `<div class="input-group mt-2">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text"><i class="fas fa-barcode"></i></span>
+                            </div>
+                            <input type="hidden" class="input-for-changed-photo" name="serials[]" value="serial_new_${row.type}_${row.val}" />
+                            <input type="text" class="form-control" placeholder="Серийный номер" aria-label="Серийный номер" name="serial_new_${row.type}_${row.val}">
+                        </div>` : ``}
                     </div>
                 </div>`);
             }
@@ -1026,13 +1078,16 @@ function Application() {
             return $('#modal-no-useradd').modal('show');
 
         $(e).prop('disabled', true);
+        app.formValidRemove(this.modal);
 
         app.ajax(`/api/token${this.token}/service/applicationDone`, data, json => {
 
             $(e).prop('disabled', false);
 
-            if (json.error)
+            if (json.error) {
+                app.formValidErrors(this.modal, json.inputs);
                 return app.globalAlert(json.error, json.done, json.code);
+            }
 
             $(e).prop('disabled', true);
             location.reload();

@@ -21,6 +21,9 @@ function App() {
      */
     this.scrollDoit = func => {
 
+        if (this.funcForScroll)
+            return this;
+
         this.funcForScroll = func;
 
         $(window).scroll(() => {
@@ -28,6 +31,8 @@ function App() {
                 this.funcForScroll();
             }
         });
+
+        return this;
 
     }
 

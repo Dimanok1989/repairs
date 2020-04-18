@@ -265,7 +265,6 @@ class Service extends Main
         $data = (Object)[];
 
         $tape = ServiceModel::getWorkTapeData($request);
-
         $data->service = self::getFullServicesData($tape, true);
 
         // Всего страниц
@@ -273,7 +272,6 @@ class Service extends Main
 
         // Следующая страница
         $data->next = $tape->currentPage() + 1;
-
 
         return $data;
 

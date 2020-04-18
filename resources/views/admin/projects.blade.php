@@ -6,7 +6,7 @@
 
     <h4 class="my-3">Заказчики</h4>
 
-    <div id="list-data" class="list-group mx-auto mt-4" style="max-width: 750px;"></div>
+    <div id="list-data" class="list-group mx-auto mt-4 content-block-width"></div>
 
     <div class="text-center" id="loading-rows">
         <div class="spinner-border spinner-border-sm" role="status">
@@ -67,5 +67,9 @@
 @endsection
 
 @section('script')
-<script>admin.getProjectsList();</script>
+<script>
+    $(document).ready(() => {
+        admin.getProjectsList();
+    });
+</script>
 @endsection

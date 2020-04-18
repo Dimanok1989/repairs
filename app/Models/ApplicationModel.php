@@ -72,7 +72,7 @@ class ApplicationModel
         if ($request->client)
             $data = $data->whereIn('applications.clientId', is_array($request->client) ? $request->client : [$request->client]);
 
-        return $data->orderBy('applications.priority', 'DESC')->orderBy('applications.date', 'DESC')->offset($request->offset)->limit(40)->get();
+        return $data->orderBy('applications.priority', 'DESC')->orderBy('applications.date', 'DESC')->paginate(25);
 
     }
 
@@ -124,6 +124,7 @@ class ApplicationModel
         ->limit(1)
         ->update([
             'delUserId' => $request->__user->id ?? false,
+            'delComment' => $request->comment,
             'del' => DB::raw('NOW()'),
         ]);
 

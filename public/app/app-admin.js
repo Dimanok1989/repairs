@@ -747,7 +747,8 @@ function Admin() {
         this.modal.find('form [name="point"]').remove();
 
         this.modal.find('form #norma').prop('disabled', false);
-        this.modal.find('#save-data').prop('disabled', false);
+        this.modal.find('form #slave-form input').prop('disabled', false);
+        this.modal.find('form #forchangedserials').prop('disabled', true);
 
         this.modal.find(`form .is-invalid`).each(function() {
             $(this).removeClass('is-invalid');
@@ -755,7 +756,7 @@ function Admin() {
 
         this.modal.find('form [name="type"]').val(type);
         this.modal.find('form [name="project"]').val(project);
-        
+
         if (point) {
             this.modal.find('form').append(`<input type="hidden" name="point" value="${point}">`);
             this.modal.find('form #master-select').addClass('d-none');
@@ -860,6 +861,19 @@ function Admin() {
 
     }
 
+    /** Выбор мастер пункта ремонта */
+    this.selectPointRepairEnterSerials = e => {
+
+        let checked = $(e).prop('checked'),
+            checkbox = $('#forchangedserials');
+
+        if (checked)
+            checkbox.prop('disabled', false);
+        else
+            checkbox.prop('disabled', true);
+
+    }
+
     /** Сохранение нового пункта по ремонту */
     this.savePointRepair = (e) => {
 
@@ -870,7 +884,7 @@ function Admin() {
             $(this).removeClass('is-invalid');
         });
 
-        let data = this.modal.find('form').serializeArray();        
+        let data = this.modal.find('form').serializeArray();       
 
         app.ajax(`/api/token${this.token}/admin/savePointRepair`, data, json => {
 

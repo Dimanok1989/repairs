@@ -4,7 +4,7 @@
 
 @include('application.search')
 
-<div class="mt-4 mb-3 mx-auto" style="max-width: 600px;">
+<div class="mt-4 mb-3 mx-auto content-block-width">
 @forelse($applications as $application)
 
     <div class="card mt-3 cursor-default">
@@ -15,7 +15,7 @@
             </div>
             <div class="mx-auto">
                 @foreach($application->projects as $key => $project)
-                    <a href="{{ route('applicatioslist') }}{{ $application->id }}?project={{ $key }}" class="btn btn-light text-center p-0 m-2 text-dark">
+                    <a href="{{ route('applicatioslist') }}{{ $application->id }}?project={{ $key }}" class="btn btn-light-main text-center p-0 m-2 text-dark">
                         <div class="pt-2 pb-0 px-3"><i class="fas {{ $application->projectsIcon[$key] }} fa-2x"></i></span></div>
                         <div class="text-danger font-weight-bold">{{ $application->applications[$key] ?? 0 }}</div>
                         {{-- <div class="badge badge-primary mt-1">{{ $application->applications[$key] ?? 0 }}</div> --}}

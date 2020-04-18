@@ -4,7 +4,7 @@
 
 @section('content')
 
-<div class="mt-4 mb-3 mx-auto" style="max-width: 600px;">
+<div class="mt-4 mb-3 mx-auto content-block-width">
 
     <h3 class="mb-4">Новая заявка</h3>
 

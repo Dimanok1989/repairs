@@ -115,6 +115,10 @@ textarea { resize: none; }
     opacity: 1;
 }
 
+.content-block-width {
+    max-width: 600px;
+}
+
 .modal .modal-loading {
     position: absolute;
     top: 0;
@@ -310,4 +314,15 @@ button.close {
         -moz-box-shadow: 0 0 0 0 rgba(204,169,44, 0);
         box-shadow: 0 0 0 0 rgba(204,169,44, 0);
     }
+}
+
+.btn.btn-light-main {
+    border: 1px solid rgba(0,0,0,.125);
+}
+.btn.btn-light-main:hover {
+    background: rgba(0,0,0,0.05);
+}
+.btn.btn-light-main:active,
+.btn.btn-light-main:focus {
+    outline-color: rgba(0,0,0,0.05);
 }

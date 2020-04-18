@@ -2,7 +2,7 @@
 
 @section('content')
 
-<div style="max-width: 800px;" class="mx-auto">
+<div class="mx-auto content-block-width">
 
     <h4 class="mt-3 mb-0">Заказчик</h4>
     <h5 class="mb-3 d-flex align-items-center justify-content-center" id="name-client">
@@ -161,7 +161,6 @@
                     <div class="input-group">
                         <input type="text" class="form-control" placeholder="Наименование пункта" aria-label="Наименование пункта" name="name" />
                     </div>
-                    {{-- <small class="text-info">Наименование пункта будет использовано при формировании закрывающих документов</small> --}}
 
                     <div id="master-select">
                         <div class="custom-control custom-switch text-left mt-3">
@@ -181,16 +180,21 @@
                         </div>
 
                         <div class="custom-control custom-switch text-left mt-3">
-                            <input type="checkbox" class="custom-control-input" id="forchanged" name="forchanged">
+                            <input type="checkbox" class="custom-control-input" id="forchanged" name="forchanged" onchange="admin.selectPointRepairEnterSerials(this);">
                             <label class="custom-control-label" for="forchanged">Смена оборудования</label>
                         </div>
                         <small class="text-info">При выборе данного пункта в момент завршения заявки, нужно будет загрузить фотографии старого и ногового оборудования</small>
 
                         <div class="custom-control custom-switch text-left mt-3">
+                            <input type="checkbox" class="custom-control-input" id="forchangedserials" name="forchangedserials" disabled>
+                            <label class="custom-control-label" for="forchangedserials">Указать серийные номера</label>
+                        </div>
+
+                        <div class="custom-control custom-switch text-left mt-3">
                             <input type="checkbox" class="custom-control-input" id="forchangedfond" name="forchangedfond">
                             <label class="custom-control-label" for="forchangedfond">Подменный фонд</label>
                         </div>
-                        <small class="text-info">Если будет выбан данный пункт, то заявка поменяет свой статус на подменный фонд</small>
+                        <small class="text-info">Если будет выбан данный пункт, то после завершения заявка поменяет свой статус на подменный фонд</small>
 
                     </div>
 
