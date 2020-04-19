@@ -37,6 +37,8 @@ Route::group([
     'middleware' => 'CheckToken'
 ], function () {
 
+    Route::match(['get','post'], '/search', 'Search@search');
+
     /** Работа с заявками */
     Route::group(['prefix' => 'service'], function () {
 

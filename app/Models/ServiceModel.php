@@ -42,5 +42,12 @@ class ServiceModel
 
     }
 
+    /** Список замены мерийных номеров */
+    public static function getSerialsFromChangedDeviceApplications($ids) {
+
+        return DB::table('device_change_serials')->whereIn('serviceId', $ids)->orderBy('date', 'DESC')->get();
+
+    }
+
 
 }

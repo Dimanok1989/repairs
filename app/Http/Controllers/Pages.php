@@ -159,4 +159,16 @@ class Pages extends \App\Http\Controllers\Main
 
     }
 
+    /**
+     * Страница поиска
+     */
+    public static function search(Request $request) {
+
+        if (!Session::get('user'))
+            return redirect("/");
+
+        return view('search');
+
+    }
+
 }

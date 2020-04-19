@@ -101,5 +101,8 @@ Route::get('/service', 'Pages@serviceWorkTape');
 /** Страница выбора заказчика для добавления заявки */
 Route::get('/add', 'Pages@SelectForaddApplication')->name('SelectForaddApplication');
 
+/** Глобальный поиск */
+Route::get('/search', 'Pages@search')->name('search');
+
 /** Страница подачи заявок */
 Route::get('/{project}', 'Pages@addRequest')->name('addRequest');

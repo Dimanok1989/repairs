@@ -310,10 +310,6 @@ function App() {
 
     }
 
-    this.search = function() {
-
-    }
-
     /** Индикация загрузки модального окна */
     this.modalLoading = function(e, type = false) {
 
@@ -327,9 +323,12 @@ function App() {
 
     }
 
-    this.getQuery = function(str = "") {
+    this.getQuery = (str = "") => {
 
         let arr = {};
+
+        if (str == "")
+            str = location.search;
 
         if (str == "")
             return arr;
@@ -345,15 +344,20 @@ function App() {
 
     }
 
-    this.getQueryUrl = function(arr) {
+    this.getQueryUrl = arr => {
 
         let newArr = [];
 
         $.each(arr, (i,row) => {
-            newArr.push(i+"="+row);
+            newArr.push((typeof row != "undefined") ? i+"="+row : i);
         });
 
-        return "?" + newArr.join("&");
+        let search = newArr.join("&");
+
+        if (search == "")
+            return "";
+
+        return "?" + search;
 
     }
 
@@ -467,6 +471,152 @@ function App() {
 
         $('#img-content').append(img);
         $('#img-content .next, #img-content .back').data('id', newid);
+
+    }
+
+    /** Начало поиска */
+    this.noRedir = false;
+    this.searchStart = (button = false) => {
+
+        let text = $('#search-start').val(),
+            query = this.getQuery();
+
+        if (text != "")
+            query.text = text;
+
+        if (text == "")
+            delete query.text;
+
+        let search = this.getQueryUrl(query);
+
+        if (event.keyCode == 13)
+            button = true;
+        
+        if (button && !this.noRedir)
+            return window.location.href = `/search${search}`;
+
+        if (button) {
+
+            this.page = 0;
+            window.history.pushState(null, null, `/search${search}`); 
+
+            $('#v-pills-tab a.nav-link').each((i,row) => {
+
+                let a = $(row).data('id');
+                this.endSearchData[a] = false;
+
+            });
+
+            return this.searchData();
+
+        }
+
+    }
+
+    /** Главный поиск по заявкам */
+    this.endSearchData = {
+        applications: false,
+        bus: false,
+        device: false,
+    };
+    this.activeSearche = "applications";
+    this.searchData = () => {
+
+        if (this.endSearchData[this.activeSearche] === true)
+            return this;
+
+        let data = this.getQuery();
+        data.page = this.page;
+
+        if (!data.text || data.text == "" || data.text == "0")
+            return this.globalAlert("Задан пустой запрос", "error");
+
+        $('#loading-data').removeClass('d-none');
+        this.progress = true;
+
+        this.ajax(`/api/token${this.token}/search`, data, json => {
+
+            $('#loading-data').addClass('d-none');
+            this.searchText = json.data.text;
+  
+            this.scrollDoit(this.searchData);
+            this.searchDoneApplications(json.data.applications)
+
+            this.page++;
+            this.progress = false;
+
+            if (this.endSearchData.applications && this.endSearchData.bus && this.endSearchData.device)
+                this.progressEnd = true;
+
+        });
+
+    }
+    this.searchText = "";
+    this.replaceQuery = text => {
+        let searched = String(text).replace(this.searchText, '<mark class="px-0 font-weight-bold">'+this.searchText+'</mark>');
+        return searched;
+    }
+    /** Вывод найденных заявок */
+    this.searchDoneApplications = rows => {
+
+        if (this.endSearchData.applications)
+            return this;
+
+        let html = "",
+            count = 0;
+
+        $.each(rows, (i,row) => {
+
+            let serials = '';
+
+            count++;
+
+            $.each(row.serialsData, (key,serial) => {
+                serials += `<div class="d-flex justify-content-between align-items-center">
+                    <div class="d-flex justify-content-center align-items-center">
+                        <i class="fas fa-barcode"></i>
+                        <div class="mx-2">${this.replaceQuery(serial.serialOld)}</div>
+                        <i class="fas fa-long-arrow-alt-right"></i>
+                        <div class="ml-2">${this.replaceQuery(serial.serialNew)}</div>
+                    </div>
+                    <!-- <div class="mr-2 text-muted">${serial.dateAdd}</div> -->
+                </div>`;
+            });
+
+            html += `<div class="card my-2 text-left">
+                <div class="card-body py-2">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <strong>${this.replaceQuery(row.bus)} ${row.clientName}</strong>
+                        <small class="opacity-80">${row.dateAdd}</small>
+                    </div>
+                    <div class="d-flex justify-content-start align-items-center">
+                        <a href="${row.appLink}" class="mr-3" target="_blank">Заявка #${this.replaceQuery(row.id)}</a>
+                        ${application.getHtmlStatusApplication(row)}
+                    </div>                    
+                    <p class="mt-0 mb-1 font-weight-light">${row.breaksListText}</p>
+                    ${row.comment ? `<p class="mb-1"><i class="fas fa-quote-left opacity-50 mr-1"></i>${this.replaceQuery(row.comment)}</p>` : ''}
+                    ${application.getHtmlBottomIcons(row)}
+                    ${serials != "" ? `<div class="mt-2"><div>Замена оборудования:</div>${serials}</div>` : ''}
+                </div>
+            </div>`;
+
+        });
+
+        if (html == "" && this.page == 0)
+            html = '<p class="lead">По Вашему запросу заявок не найдено</p>';
+
+        if (count == 0 && this.page > 0)
+            html = '<small class="my-2 opacity-50 text-center">Это все данные</small>';
+
+        if (count == 0)
+            this.endSearchData.applications = true;
+
+        if (this.page > 0)
+            $('#v-pills-applications').append(html);
+        else
+            $('#v-pills-applications').html(html);
+
+        return this;
 
     }
 

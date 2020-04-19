@@ -309,26 +309,25 @@ function Application() {
                 </div>
                 <h6 class="card-subtitle pt-1 opacity-70">#${row.id} ${row.clientName}</h6>
                 ${this.getHtmlStatusApplication(row)}
-
                 <p class="mt-2 mb-1 font-weight-light">${row.breaksListText}</p>
-
                 ${row.comment ? `<p class="mb-1 font-weight-light font-italic"><i class="fas fa-quote-left opacity-50 mr-2"></i>${row.comment}</p>` : ``}
-
-                <div class="d-flex justify-content-left align-items-center mt-1">
-                    <i class="fas ${row.projectIcon} mr-3 opacity-60"></i>
-                    ${row.userId ? `<i class="fas fa-user mr-3" title="Добавлена пользователем" data-toggle="tooltip"></i>` : ``}
-                    ${row.priority ? `<i class="fas fa-exclamation-circle text-warning mr-3" title="Приоритеная заявка" data-toggle="tooltip"></i>` : ``}
-                    ${row.problem ? `<i class="fas fa-exclamation-triangle text-danger mr-3" title="Проблемная заявка" data-toggle="tooltip"></i>` : ``}
-                    ${row.combineData[0] ? `<div class="mr-3 font-weight-bold" title="Присоединённых заявок" data-toggle="tooltip"><i class="fas fa-network-wired"></i> ${row.combineData.length}</div>` : ``}
-                    ${row.changed ? `<i class="fas fa-exchange-alt text-danger mr-3" title="Подменный фонд" data-toggle="tooltip"></i>` : ``}
-                    ${row.del ? `<span class="mr-3 text-danger"><i class="fas fa-trash" title="Удалена" data-toggle="tooltip"></i></span>` : ``}
-                </div>
-
+                ${this.getHtmlBottomIcons(row)}
                 <div class="row row-cols-2 row-cols-md-3${images != "" ? ' mt-3' : ''} px-2">${images}</div>
-                
             </div>
         </div>`;
 
+    }
+    /** Вывод нижней панели иконок */
+    this.getHtmlBottomIcons = row => {
+        return `<div class="d-flex justify-content-left align-items-center mt-1">
+            <i class="fas ${row.projectIcon} mr-3 opacity-60"></i>
+            ${row.userId ? `<i class="fas fa-user mr-3" title="Добавлена пользователем" data-toggle="tooltip"></i>` : ``}
+            ${row.priority ? `<i class="fas fa-exclamation-circle text-warning mr-3" title="Приоритеная заявка" data-toggle="tooltip"></i>` : ``}
+            ${row.problem ? `<i class="fas fa-exclamation-triangle text-danger mr-3" title="Проблемная заявка" data-toggle="tooltip"></i>` : ``}
+            ${row.combineData[0] ? `<div class="mr-3 font-weight-bold" title="Присоединённых заявок" data-toggle="tooltip"><i class="fas fa-network-wired"></i> ${row.combineData.length}</div>` : ``}
+            ${row.changed ? `<i class="fas fa-exchange-alt text-danger mr-3" title="Подменный фонд" data-toggle="tooltip"></i>` : ``}
+            ${row.del ? `<span class="mr-3 text-danger"><i class="fas fa-trash" title="Удалена" data-toggle="tooltip"></i></span>` : ``}
+        </div>`;
     }
     /** Вывод статуса заявки */
     this.getHtmlStatusApplication = row => {
@@ -1243,6 +1242,7 @@ function Application() {
         });
 
     }
+
 
 }
 var application = new Application;

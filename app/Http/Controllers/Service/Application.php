@@ -139,6 +139,7 @@ class Application extends Main
         $breaks = []; // Идентификаторы пунктов неисправностей
         $imagelinks = []; // Идентификаторы файлов
         $ids = []; // Идентификаторы всех затронух зявок
+        $services = []; // Идентификаторы сервисов
 
         // Первоначальный проход всех заявок, обработка основных данных
         // и сбор идентификаторов для доступа дополнительных данных в БД
@@ -178,8 +179,19 @@ class Application extends Main
             $row->combineLinks = []; // Список идентификаторов заявок
             $row->combineLink = $row->combine ? env('APP_URL') . "/id" . parent::dec2link($row->combine) : null;
 
+            // Ссылка на заявку
+            $row->appLink = "/id" . parent::dec2link($row->id);
+
             // Дата удаления
             $row->deleteDate = $row->del ? date("d.m.Y в H:i", strtotime($row->del)) : null;
+
+            // Заполнение массива идентификаторов сервиса
+            if ($row->done AND !in_array($row->done, $services))
+                $services[] = $row->done;
+            if ($row->changedId AND !in_array($row->changedId, $services))
+                $services[] = $row->changedId;
+
+            $row->serialsData = [];
 
             // Временные неполные данные заявок
             $temp[] = $row;
@@ -229,6 +241,12 @@ class Application extends Main
         foreach (ApplicationModel::getImagesData($imagelinks) as $image)
             $imagesdata[$image->id] = $image;
 
+        // Получение списка замены серийных номеров
+        $serialsdata = [];
+        foreach (\App\Models\ServiceModel::getSerialsFromChangedDeviceApplications($services) as $service) {
+            $service->dateAdd = parent::createDate($row->date); // Дата создания
+            $serialsdata[$service->serviceId][] = $service;
+        }
 
         // Дополнение данных в заявоки
         foreach ($temp as $key => $row) {
@@ -258,6 +276,18 @@ class Application extends Main
 
                 }
 
+            }
+
+            // Серийные номера
+            if (isset($serialsdata[$row->changedId])) {
+                foreach ($serialsdata[$row->changedId] as $serials) {
+                    $row->serialsData[] = $serials;
+                }
+            }
+            if (isset($serialsdata[$row->done])) {
+                foreach ($serialsdata[$row->done] as $serials) {
+                    $row->serialsData[] = $serials;
+                }
             }
 
             // Добавление данных о комментариях

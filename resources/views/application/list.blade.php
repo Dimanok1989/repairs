@@ -4,7 +4,7 @@
 
 @section('content')
 
-@include('application.search')
+{{-- @include('application.search') --}}
 
 <div class="mt-4 mb-3 mx-auto content-block-width" id="applications-list" data-client="{{ request()->client ?? 0 }}" data-project="{{ request()->project ?? 0 }}">
 
