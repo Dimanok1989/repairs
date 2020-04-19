@@ -25,21 +25,43 @@ class Users extends Main
         if (!$chek = parent::checkRight('admin', $request->token))
             return parent::error("Доступ к списку сотрудников ограничен", 1001);
 
-        // Смещение в БД
-        $page = (int) $request->page > 1 ? (int) $request->page : 1;
-        $offset = $request->page ? $page * 40 : 0;
+        if ($request->text) {
+            $request->text = str_replace(" ", "", $request->text);
+            $request->phone = parent::checkPhone($request->text) ? parent::checkPhone($request->text) : $request->text;
+        }
 
         // Список пользвоателей
-        $users = UserModel::getUsersList($offset);
-        
-        foreach ($users as $key => $row)
-            $users[$key] = self::modUserRow($row);
+        $data = self::getUsersListData($request);
 
-        return parent::json([
-            'page' => $page+1,
-            'users' => $users,
-            'end' => count($users) < 40 ? true : false, // Больше строк нет
-        ]);
+        $data->count = [
+            'active' => UserModel::countActiveUsers(), // Количество активных сотрудников
+            'ban' => UserModel::countBanUsers(), // Количество заблокированных сотрудников
+        ];
+
+        $data->request = $request;
+
+        return parent::json($data);
+
+    }
+
+    /**
+     * Данные списка пользователей
+     */
+    public static function getUsersListData(Request $request) {
+
+        $data = (Object) []; // Вывод данных
+
+        $rows = UserModel::getUsersListDataForAdmin($request);
+
+        $data->users = [];
+
+        foreach ($rows as $row)
+            $data->users[] = self::modUserRow($row);
+
+        $data->last = $rows->lastPage(); // Всего страниц
+        $data->next = $rows->currentPage() + 1; // Следующая страница
+
+        return $data;
 
     }
 

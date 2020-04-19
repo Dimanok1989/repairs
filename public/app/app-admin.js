@@ -14,15 +14,25 @@ function Admin() {
     }
 
     /** Загрузка страницы списка сотрудников */
-    this.getUsersList = () => {
+    this.getUsersList = (search = false) => {
 
         let data = {
             page: app.page,
-        }
+        };
+
+        if (search && search != "")
+            data.text = search;
+
+        app.scrollDoit(this.getUsersList);
+
+        $('#loading-rows').show();
+        app.progress = true;
 
         app.ajax(`/api/token${this.token}/admin/getUsersList`, data, json => {
 
             $('#loading-rows').hide();
+            app.progress = false;
+            app.page++;
 
             if (!json.data)
                 $('#list-users').append(`<div class="text-center my-4 text-muted">Данных нет</div>`);
@@ -34,10 +44,21 @@ function Admin() {
                 $('#list-users').append(this.getHtmlUserRow(row));
             });
 
-            if (!json.data.end)
-                app.page = json.data.page;
+            $('#no-result').remove();
+            if (search && json.data.users.length == 0 && app.page == 1)
+                $('#sub-content').append(`<div class="mt-4" id="no-result">По запросу "<span class="font-weight-bold">${search}</span>" ничего не найдено</div>`);
+
+            if (json.data.next > json.data.last)
+                app.progressEnd = true;
 
         });
+
+    }
+    this.getSearchUsersList = (request, responce) => {
+
+        app.page = 0;
+        $('#list-users').empty();
+        this.getUsersList(String(request.term).trim());
 
     }
 

@@ -165,6 +165,55 @@ class UserModel
     }
 
     /**
+     * Количество активных сотрудников
+     */
+    public static function countActiveUsers() {
+
+        return DB::table('users')->where('ban', 0)->count();
+
+    }
+
+    /**
+     * Количество заблокированных сотрудников
+     */
+    public static function countBanUsers() {
+
+        return DB::table('users')->where('ban', 1)->count();
+
+    }
+
+    /**
+     * Вывод списка пользователей для админ-панели
+     */
+    public static function getUsersListDataForAdmin($request) {
+
+        $where = [];
+
+        if (!$request->text)
+            $where[] = ['ban', 0];
+
+        $data = DB::table('users')
+        ->select('users.*', 'users_group.admin', 'users_group.name', 'users_group.color')
+        ->leftJoin('users_group', 'users.groupId', '=', 'users_group.id')
+        ->where($where);
+
+        if ($request->text) {
+            $data = $data->where(function($query) use ($request) {
+                $query->where(DB::raw("CONCAT(IFNULL(users.firstname,''),IFNULL(users.lastname,''),IFNULL(users.fathername,''))"), 'LIKE', "%{$request->text}%")
+                ->orWhere('users.login', 'LIKE', "%{$request->text}%")
+                ->orWhere('users.phone', 'LIKE', "%{$request->phone}%")
+                ->orWhere('users.email', 'LIKE', "%{$request->text}%");
+            });
+        }
+
+        $data = $data->orderBy('firstname')        
+        ->paginate(30);
+
+        return $data;
+
+    }
+
+    /**
      * Список пользователей доавбленных в друзья
      */
     public static function getFavoritUsersList($request) {
@@ -243,7 +292,7 @@ class UserModel
             ['users.id', '!=', $request->__user->id]
         ])
         ->where(function ($query) use ($request) {
-            $query->where(DB::raw('CONCAT(users.firstname,users.lastname,users.fathername)'), 'LIKE', "%{$request->search}%")
+            $query->where(DB::raw("CONCAT(IFNULL(users.firstname,''),IFNULL(users.lastname,''),IFNULL(users.fathername,''))"), 'LIKE', "%{$request->search}%")
             ->orWhere('users.login', 'LIKE', "%{$request->search}%")
             ->orWhere('users.phone', 'LIKE', "%{$request->search}%")
             ->orWhere('users.email', 'LIKE', "%{$request->search}%");
