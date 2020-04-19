@@ -35,6 +35,14 @@
         <script src="/app/app-application.js?{{ config('app.version') }}"></script>
         <script src="/app/app-service.js?{{ config('app.version') }}"></script>
         @yield('script')
+        <script>
+            $(() => {
+                setTimeout(() => {
+                    if ($('#left-bar-menu .new-data-menu').length == 0)
+                        $('#header-open-menu .new-data').remove();
+                }, 1000);   
+            });
+        </script>
 
     </body>
 

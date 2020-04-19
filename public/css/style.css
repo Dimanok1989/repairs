@@ -295,7 +295,7 @@ button.close {
         -webkit-box-shadow: 0 0 0 0 rgba(204,169,44, 0.4);
     }
     70% {
-        -webkit-box-shadow: 0 0 0 10px rgba(204,169,44, 0);
+        -webkit-box-shadow: 0 0 0 6px rgba(204,169,44, 0);
     }
     100% {
         -webkit-box-shadow: 0 0 0 0 rgba(204,169,44, 0);
@@ -307,8 +307,8 @@ button.close {
         box-shadow: 0 0 0 0 rgba(204,169,44, 0.4);
     }
     70% {
-        -moz-box-shadow: 0 0 0 10px rgba(204,169,44, 0);
-        box-shadow: 0 0 0 10px rgba(204,169,44, 0);
+        -moz-box-shadow: 0 0 0 6px rgba(204,169,44, 0);
+        box-shadow: 0 0 0 6px rgba(204,169,44, 0);
     }
     100% {
         -moz-box-shadow: 0 0 0 0 rgba(204,169,44, 0);
@@ -325,4 +325,31 @@ button.close {
 .btn.btn-light-main:active,
 .btn.btn-light-main:focus {
     outline-color: rgba(0,0,0,0.05);
+}
+
+.new-data {
+    display: inline-block;
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 10px;
+    height: 10px;
+    border-radius: 6px;
+    background: #fd7e14;
+    z-index: 10;
+}
+.new-data-menu {
+    display: inline-block;
+    position: absolute;
+    top: calc(50% - 2px);
+    right: 10px;
+    width: 6px;
+    height: 6px;
+    border-radius: 3px;
+    background: #fd7e14;
+    z-index: 10;
+}
+.new-data.pulse,
+.new-data-menu.pulse {
+    animation: pulse 2s infinite;
 }

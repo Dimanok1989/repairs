@@ -17,6 +17,7 @@
 <script>
     $(document).ready(() => {
         service.getWorkTape();
+        $('#menu-new-data').remove();
     });
 </script>
 @endsection

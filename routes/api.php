@@ -70,6 +70,8 @@ Route::group([
         /** Лента сервиса */
         Route::match(['get','post'], '/getWorkTape', 'Service\Service@getWorkTape');
 
+        /** Лента комментариев */
+        Route::match(['get','post'], '/getComments', 'Service\Service@getComments');
 
     });
 

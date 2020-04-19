@@ -141,7 +141,7 @@ class Pages extends \App\Http\Controllers\Main
     /** Страница нстроек личного кабинета */
     public static function userSettings(Request $request) {
 
-        // dump(Session::get('user'), $_COOKIE);
+        dump(Session::get('user'), $_COOKIE);
 
         return view('user.settings');
 
@@ -152,8 +152,17 @@ class Pages extends \App\Http\Controllers\Main
      */
     public static function serviceWorkTape(Request $request) {
 
-        if (!Session::get('user'))
+        if (!$user = Session::get('user'))
             return redirect("/");
+
+        if (!parent::checkRight(['admin','applications']))
+            return abort(404);
+
+        // Обновление время посещения раздела
+        \App\Models\UserModel::writeTimeVisitRazdel([
+            'userId' => $user->id,
+            'razdel' => 'services',
+        ]);
 
         return view('application.worktape');
 
@@ -168,6 +177,26 @@ class Pages extends \App\Http\Controllers\Main
             return redirect("/");
 
         return view('search');
+
+    }
+
+    /**
+     * Страница поиска
+     */
+    public static function comments(Request $request) {
+
+        if (!$user = Session::get('user'))
+            return redirect("/");
+
+        if (!parent::checkRight(['admin','application_comment','applications_done']))
+            return abort(404);
+
+        \App\Models\UserModel::writeTimeVisitRazdel([
+            'userId' => $user->id,
+            'razdel' => 'comments',
+        ]);
+
+        return view('application.comments');
 
     }
 

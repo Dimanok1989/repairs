@@ -874,6 +874,8 @@ class Application extends Main
         $serials = []; // Массив с данными для записи смены серийных номеров
         $checkSerial = []; // Проверка введенных серийников
 
+        $tempdata = [];
+
         if (is_array($request->serials)) {
 
             $tempdata = [

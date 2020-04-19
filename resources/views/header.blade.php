@@ -2,12 +2,21 @@
 
 <div class="bg-dark text-light px-3 py-3 fixed-top">
 
-    @if (Session::get('user')) <button class="btn btn-sm btn-dark align-middle rounded-circle2 fa-lg" onclick="app.openMenu();"><i class="fas fa-bars"></i></button> @endif
+    <button class="btn btn-sm btn-dark align-middle rounded-circle2 fa-lg position-relative" onclick="app.openMenu();" id="header-open-menu">
+        <i class="fas fa-bars"></i>
+        @if ($__user->newData->services > 0)
+            <span class="new-data pulse"></span>
+        @endif
+    </button>
 
     <a href="/" class="ml-1 btn btn-sm btn-dark align-middle rounded-circle2 fa-lg" title="Главная страница"><i class="fas fa-home"></i></a>
 
     @if ($__user->access->applications == 1 OR $__user->access->admin == 1)
         <a href="/add" class="ml-1 btn btn-sm btn-dark align-middle rounded-circle2 fa-lg" title="Добавить заявку"><i class="fas fa-plus-square"></i></a>
+    @endif
+
+    @if ($__user->access->application_comment == 1 OR $__user->access->applications_done == 1 OR $__user->access->admin == 1)
+        <a href="/comments" class="ml-1 btn btn-sm btn-dark align-middle rounded-circle2 fa-lg position-relative" title="Комментарии" id="header-comments-link"><i class="far fa-comments"></i>@if ($__user->newData->comments > 0) <span class="new-data pulse"></span> @endif</a>
     @endif
 
     {{-- @if (Session::get('user'))
@@ -32,7 +41,7 @@
 
 @if (Session::get('user')) 
     <div id="nav-bg" onclick="app.closeMenu();"></div>
-    <nav class="menu">
+    <nav class="menu" id="left-bar-menu">
         <div class="text-light px-3 py-2">
             <button class="btn btn-sm btn-light align-middle rounded-circle" onclick="app.closeMenu();"><i class="fas fa-chevron-left" style="width: 14px; text-align: center;"></i></button>
         </div>
@@ -42,7 +51,12 @@
 
             @if ($__user->access->applications == 1 OR $__user->access->admin == 1)
                 <a href="/add" class="list-group-item py-1 list-group-item-action{{ route('SelectForaddApplication') == url()->current() ? " active" : "" }}"><i class="fas fa-plus-square mr-1"></i>Добавить заявку</a>
-                <a href="/service" class="list-group-item py-1 list-group-item-action{{ strripos(url()->current(), "ru/service") ? " active" : "" }}"><i class="fas fa-tools mr-1"></i>Лента работ</a>
+                <a href="/service" class="list-group-item py-1 list-group-item-action position-relative{{ strripos(url()->current(), "ru/service") ? " active" : "" }}">
+                    <i class="fas fa-tools mr-1"></i>Лента работ
+                    @if ($__user->newData->services > 0)
+                        <span class="new-data-menu pulse" id="menu-new-data"></span>
+                    @endif
+                </a>
             @endif  
 
             @if ($__user->access->inspection == 1 OR $__user->access->admin == 1)

@@ -600,13 +600,16 @@ function App() {
                 </div>
             </div>`;
 
+            if (row.fulldata)
+                this.endSearchData.applications = true;
+
         });
 
         if (html == "" && this.page == 0)
             html = '<p class="lead">По Вашему запросу заявок не найдено</p>';
 
-        if (count == 0 && this.page > 0)
-            html = '<small class="my-2 opacity-50 text-center">Это все данные</small>';
+        if ((count == 0 && this.page > 0) || this.endSearchData.applications)
+            html += '<small class="my-2 opacity-50 text-center">Это все данные</small>';
 
         if (count == 0)
             this.endSearchData.applications = true;

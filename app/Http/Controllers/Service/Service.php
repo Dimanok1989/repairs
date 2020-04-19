@@ -262,20 +262,56 @@ class Service extends Main
      */
     public static function getWorkTapeData(Request $request) {
 
-        $data = (Object)[];
+        $data = (Object) [];
 
         $tape = ServiceModel::getWorkTapeData($request);
         $data->service = self::getFullServicesData($tape, true);
-
-        // Всего страниц
-        $data->last = $tape->lastPage();
-
-        // Следующая страница
-        $data->next = $tape->currentPage() + 1;
+   
+        $data->last = $tape->lastPage(); // Всего страниц
+        $data->next = $tape->currentPage() + 1; // Следующая страница
 
         return $data;
 
     }
 
+
+    /**
+     * Метод вывода всех комментариев
+     */
+    public static function getComments(Request $request) {
+
+        $tape = self::getCommentsData($request);
+
+        return parent::json($tape);
+
+    }
+
+    /**
+     * Получение данных для ленты комментариев
+     */
+    public static function getCommentsData(Request $request) {
+
+        $data = (Object) [];
+
+        $tape = ServiceModel::getCommentsTapeData($request);
+
+        $data->comments = [];
+        foreach ($tape as $row) {
+
+            $row->projectIcon = Application::getIconProject($row->project);
+            $row->link = "/id" . parent::dec2link($row->applicationId);
+            $row->dateAdd = parent::createDate($row->date);
+            $row->fio = parent::getUserFio($row->firstname, $row->lastname, $row->fathername, 2);
+
+            $data->comments[] = $row;
+
+        }
+
+        $data->last = $tape->lastPage(); // Всего страниц
+        $data->next = $tape->currentPage() + 1; // Следующая страница
+
+        return $data;
+
+    }
 
 }

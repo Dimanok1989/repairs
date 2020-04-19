@@ -504,5 +504,23 @@ class UserModel
 
     }
 
+    /**
+     * Добавление время посещения раздела
+     */
+    public static function writeTimeVisitRazdel($data) {
+
+        return DB::statement("INSERT INTO `users_views` SET `userId` = '{$data['userId']}', `razdel` = '{$data['razdel']}' ON DUPLICATE KEY UPDATE `count` = `count` + 1");
+
+    }
+
+    /**
+     * Получение времени посещения разделов
+     */
+    public static function getTimeVisitRazdel($id) {
+
+        return DB::table('users_views')->where('userId', $id)->get();
+
+    }
+
 
 }

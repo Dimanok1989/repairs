@@ -124,7 +124,27 @@ class User extends Main
                     $user->clientsAccess[] = $row->projectId;
         }
 
+        // Время посещения разделов
+        $times = (Object) [];
+        foreach (UserModel::getTimeVisitRazdel($user->id) as $time)
+            $times->{$time->razdel} = $time->date;
+
+        $user->times = $times;
+
+        // Новые данные
+        $user->newData = self::getAllCountsData($user);
+
         return $user;
+
+    }
+
+    /** Данные по новым изменениям */
+    public static function getAllCountsData($user) {
+
+        return (Object) [
+            'comments' => \App\Models\ServiceModel::countNewComment($user),
+            'services' => \App\Models\ServiceModel::countNewServices($user),
+        ];
 
     }
 

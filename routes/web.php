@@ -104,5 +104,8 @@ Route::get('/add', 'Pages@SelectForaddApplication')->name('SelectForaddApplicati
 /** Глобальный поиск */
 Route::get('/search', 'Pages@search')->name('search');
 
+/** Все комментарии */
+Route::get('/comments', 'Pages@comments')->name('comments');
+
 /** Страница подачи заявок */
 Route::get('/{project}', 'Pages@addRequest')->name('addRequest');

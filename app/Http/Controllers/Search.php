@@ -48,6 +48,7 @@ class Search extends Main
         foreach ($data as $row) {
             
             if (!in_array($row->id, $ids)) {
+                $row->fulldata = $data->lastPage() == $data->currentPage() ? true : false;
                 $ids[] = $row->id;
                 $rows[] = $row;
             }

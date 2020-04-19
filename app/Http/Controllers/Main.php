@@ -220,6 +220,7 @@ class Main
      *      0 - Иванов Иван Иванович
      *      1 - Иванов И.И.
      *      2|sb - Иван Иванович И.
+     *      3 - Иван И.
      */
     public static function getUserFio($firstname = false, $lastname = false, $fathername = false, $type = 0) {
 
@@ -245,6 +246,11 @@ class Main
             case 'sb':
                 $fio = $lastname ? $lastname : "";
                 $fio .= $fathername ? " " . $fathername : "";
+                $fio .= $firstname ? " " . mb_substr($firstname, 0, 1) . "." : "";
+                break;
+
+            case 3:
+                $fio = $lastname ? $lastname : "";
                 $fio .= $firstname ? " " . mb_substr($firstname, 0, 1) . "." : "";
                 break;
                 
