@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use DB;
 
 /*
 |--------------------------------------------------------------------------
@@ -32,6 +33,48 @@ Route::get('/tlg', function() {
 
 });
 
+// Route::get('/busInsert', function() {
+
+//     $rows = DB::table(DB::raw('`ttm.kolgaev.ru`.`ttm_bus`'))->get();
+
+//     $data = [];
+//     foreach ($rows as $row) {
+
+//         $name = explode(" ", $row->name);
+
+//         $mark = NULL;
+//         $model = NULL;
+
+//         if (isset($name[0])) {
+//             if ($name[0] != "")
+//                 $mark = $name[0];
+//         }
+
+//         if (isset($name[1])) {
+//             if ($name[1] != "")
+//                 $model = $name[1];
+//         }
+
+//         $add = [
+//             'garage' => $row->bus,
+//             'vin' => $row->vin != "" ? $row->vin : NULL,
+//             'mark' => $mark,
+//             'model' => $model,
+//             'modif' => $row->modif,
+//             'year' => (int) $row->year ? (int) $row->year : NULL,
+//             'number' => $row->num != "" ? $row->num : NULL,
+//         ];
+
+//         $data[] = $add;
+
+//     }
+
+//     DB::table('bus')->insert($data);
+
+//     dd($data);
+
+// });
+
 
 /** Админ панель */
 Route::group(['prefix' => 'admin'], function () {
@@ -54,7 +97,14 @@ Route::group(['prefix' => 'admin'], function () {
         /** Главная страницы администрирования сотрудников */
         Route::get('/{id}', 'PagesAdmin@project');
     });
-    
+
+    /** Работа с подвижным составом */
+    Route::group(['prefix' => 'bus'], function () {        
+        /** Главная страницы администрирования сотрудников */
+        Route::get('/', 'PagesAdmin@bus')->name('adminbus');
+        /** Главная страницы администрирования сотрудников */
+        Route::get('/{id}', 'PagesAdmin@project');
+    });    
 
     /** Общие страницы админки монтажа */
     Route::group(['prefix' => 'montage'], function () {

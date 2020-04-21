@@ -52,4 +52,14 @@ class PagesAdmin extends Main
 
     }
 
+    /** Главная страница подвижного состава */
+    public static function bus(Request $request) {
+
+        if (!parent::checkRight('admin'))
+            return abort(404);
+
+        return view('admin.bus');
+
+    }
+
 }

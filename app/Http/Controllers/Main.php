@@ -62,6 +62,22 @@ class Main
 
 
     /**
+     * Метод определения текщей и следующей страниц для полученных
+     * данных методом paginate()
+     */
+    public static function getPaginateData($paginate) {
+
+        $data = (Object) [];
+
+        $data->last = $paginate->lastPage(); // Всего страниц
+        $data->next = $paginate->currentPage() + 1; // Следующая страница
+
+        return $data;
+
+    }
+
+
+    /**
      * Метод проверки прав пользователя в текщей сессии
      * 
      * @param String|Array $access Наименование столбца права

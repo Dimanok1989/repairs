@@ -1104,5 +1104,93 @@ function Admin() {
     }
 
 
+    /** Список подвижного состава */
+    this.getBusList = () => {
+
+        app.scrollDoit(this.getBusList);
+
+        let data = app.getQuery();
+        data.page = app.page;
+
+        if (data.sort)
+            $('#filter-sort').val(data.sort);
+
+        if (app.page == 0)
+            $('#rows-data').empty();
+
+        $('#no-data-info').remove();
+
+        $('#dataloader').show();        
+        app.progress = true;
+
+        app.ajax(`/api/token${app.token}/admin/getBusList`, data, json => {
+
+            $('#dataloader').hide();
+            app.progress = false;
+            app.page = json.data.next;
+
+            json.data.rows.forEach(row => {
+
+                row.search = json.data.search;
+                row.name = (row.mark ? row.mark : ``)+(row.model ? ` `+row.model : ``);
+                
+                let html = this.getRowBus(row);
+                $('#rows-data').append(html);
+
+            });
+
+            if (json.data.rows.length == 0)
+                $('#global-data').append('<div class="opacity-50 my-4 mx-auto" id="no-data-info">Ничего не найдено</div>');
+
+            if (json.data.next > json.data.last)
+                app.progressEnd = true;
+
+        });
+
+    }
+    this.getRowBus = row => {
+
+        return `<tr class="border-top">
+            <td class="py-1 px-2">${String(row.garage).replace(row.search, `<mark class="p-0" style="background: #fff2a4;">${row.search}</mark>`)}</td>
+            <td class="py-1 px-2">${String(row.name).replace(row.search, `<mark class="p-0" style="background: #fff2a4;">${row.search}</mark>`)}</td>
+            <td class="py-1 px-2">${String(row.number).replace(row.search, `<mark class="p-0" style="background: #fff2a4;">${row.search}</mark>`)}</td>
+            <td class="py-1 px-2">${String(row.vin).replace(row.search, `<mark class="p-0" style="background: #fff2a4;">${row.search}</mark>`)}</td>
+        </tr>`;
+
+    }
+
+    this.filterBus = e => {
+
+        let type = $(e).data('type'),
+            val = $(e).val(),
+            data = app.getQuery();
+
+        data[type] = val;
+
+        if (val == "0")
+            delete data[type];
+
+        let search = app.getQueryUrl(data);
+        window.history.pushState(null, null, `/admin/bus${search}`);
+
+        app.page = 0;
+        this.getBusList();
+
+    }
+
+    this.getSearchBus = (request, responce) => {
+
+        let data = app.getQuery();
+        data.search = String(request.term).trim();
+
+        let search = app.getQueryUrl(data);
+        window.history.pushState(null, null, `/admin/bus${search}`);
+
+        app.page = 0;
+        this.getBusList();
+
+    }
+
+
 }
 const admin = new Admin;

@@ -69,6 +69,9 @@ function App() {
 
                 console.log("<<", json);
 
+                if (json.code == 9000)
+                    location.href = "/logout";
+
                 if (typeof callback == "function")
                     callback(json);
 

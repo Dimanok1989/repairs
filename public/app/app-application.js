@@ -223,7 +223,7 @@ function Application() {
             <div class="d-flex w-100 justify-content-between">
                 <div>
                     <span class="mr-2 opacity-50">#${row.id}</span>
-                    <span class="font-weight-bold">${row.bus} <span class="ml-2">${row.clientName}</span></span>
+                    <span class="font-weight-bold">${row.bus}</span>
                 </div>
                 <small>${row.dateAdd}</small>
             </div>

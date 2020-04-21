@@ -76,6 +76,7 @@ class ServiceModel
 
         $where = [
             ['a.date', '>', $user->times->comments ?? 0],
+            ['a.userId', '!=', $user->id]
         ];
 
         if ($user->access->admin == 0 AND $user->access->application_show_del == 0)
@@ -94,6 +95,7 @@ class ServiceModel
 
         $where = [
             ['a.date', '>', $user->times->services ?? 0],
+            ['a.userId', '!=', $user->id]
         ];
 
         if ($user->access->admin == 0 AND $user->access->application_show_del == 0)

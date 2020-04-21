@@ -122,7 +122,8 @@ Route::group([
         /** Удаление возврат подпункта ремонта */
         Route::match(['get','post'], '/subPointRepairShow', 'Admin\Projects@subPointRepairShow');
 
-
+        /** Удаление возврат подпункта ремонта */
+        Route::match(['get','post'], '/getBusList', 'Garage\Garage@getBusList');
 
 
 
