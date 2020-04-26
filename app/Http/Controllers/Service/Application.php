@@ -625,6 +625,8 @@ class Application extends Main
                 if (in_array($path[$key]['mimeType'], ['image/jpeg','image/pjpeg','image/png'])) {
                     $img = storage_path("app/public/{$dir}/{$name}");
                     $path[$key]['resize'] = parent::resizeUploadedImg($img);
+                    $path[$key]['size'] = Storage::disk('public')->size("{$dir}/{$name}");
+                    $path[$key]['formatSize'] = parent::formatSize($path[$key]['size']);
                 }
 
 			}

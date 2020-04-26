@@ -64,7 +64,7 @@
             @endif
 
             @if ($__user->access->montage == 1 OR $__user->access->admin == 1)
-                <a href="/montage" class="list-group-item py-1 list-group-item-action{{ strripos(url()->current(), "ru/montage") ? " active" : "" }} disabled"><i class="fas fa-ruler-combined mr-1"></i>Монтаж</a>
+                <a href="/montage" class="list-group-item py-1 list-group-item-action{{ strripos(url()->current(), "ru/montage") ? " active" : "" }}"><i class="fas fa-ruler-combined mr-1"></i>Монтаж</a>
             @endif
             <a href="/logout" class="list-group-item py-1 list-group-item-action" title="Выход"><i class="fas fa-sign-out-alt mr-1"></i>Выход</a>
 

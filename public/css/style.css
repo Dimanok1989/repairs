@@ -61,9 +61,8 @@ nav.menu i {
     }
 }
 
-.cursor-default {
-    cursor: default;
-}
+.cursor-default { cursor: default; }
+.cursor-pointer { cursor: pointer; }
 
 body {
     background-color: #f8f8f8;
@@ -352,4 +351,13 @@ button.close {
 .new-data.pulse,
 .new-data-menu.pulse {
     animation: pulse 2s infinite;
+}
+
+.comment-form .i-add-file {
+    left: 10px;
+    z-index: 5;
+}
+.comment-form .i-send-message {
+    right: 10px;
+    z-index: 10;
 }

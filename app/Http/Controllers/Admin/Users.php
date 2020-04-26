@@ -601,6 +601,7 @@ class Users extends Main
             $row->admin = $row->indAdmin;
 
         unset($row->indAdmin);
+        unset($row->pass);
 
         $row->fio = parent::getUserFio($row->firstname, $row->lastname, $row->fathername, 0);
 

@@ -1,7 +1,6 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use DB;
 
 /*
 |--------------------------------------------------------------------------
@@ -33,47 +32,10 @@ Route::get('/tlg', function() {
 
 });
 
-// Route::get('/busInsert', function() {
-
-//     $rows = DB::table(DB::raw('`ttm.kolgaev.ru`.`ttm_bus`'))->get();
-
-//     $data = [];
-//     foreach ($rows as $row) {
-
-//         $name = explode(" ", $row->name);
-
-//         $mark = NULL;
-//         $model = NULL;
-
-//         if (isset($name[0])) {
-//             if ($name[0] != "")
-//                 $mark = $name[0];
-//         }
-
-//         if (isset($name[1])) {
-//             if ($name[1] != "")
-//                 $model = $name[1];
-//         }
-
-//         $add = [
-//             'garage' => $row->bus,
-//             'vin' => $row->vin != "" ? $row->vin : NULL,
-//             'mark' => $mark,
-//             'model' => $model,
-//             'modif' => $row->modif,
-//             'year' => (int) $row->year ? (int) $row->year : NULL,
-//             'number' => $row->num != "" ? $row->num : NULL,
-//         ];
-
-//         $data[] = $add;
-
-//     }
-
-//     DB::table('bus')->insert($data);
-
-//     dd($data);
-
-// });
+Route::get('/busInsert', function() {
+    $phpWord = new \PhpOffice\PhpWord\PhpWord();
+    dd($phpWord);
+});
 
 
 /** Админ панель */
@@ -109,9 +71,9 @@ Route::group(['prefix' => 'admin'], function () {
     /** Общие страницы админки монтажа */
     Route::group(['prefix' => 'montage'], function () {
         /** Главная страница админки монтажа */
-        Route::get('/', 'PagesAdmin@montage')->name('montage');
+        Route::get('/', 'Pages@montage')->name('adminmontage');
         /** Страница загрузки файла списка задач */
-        Route::get('/create{id}', 'PagesAdmin@createTask');
+        Route::get('/id{id}', 'Pages@montagePage')->name('adminmontagePage');
         /** Страница списка задач по монтажу */
         Route::get('/tasks{id}', 'PagesAdmin@tasks');
     });
@@ -128,13 +90,20 @@ Route::group(['prefix' => 'admin'], function () {
     
 });
 
+/** Страницы монтажа */
+Route::group(['prefix' => 'montage'], function () {
+    /** Главная страница админки монтажа */
+    Route::get('/', 'Pages@montage')->name('montage');
+    /** Вывод картинки акта с наложенным текстом данных */
+    Route::get('/act{id}', 'Pages@createJpegAct');
+});
+Route::get('/montage{id}', 'Pages@montage')->name('montagePage');
+
 
 /** Личный кабинет */
 Route::group(['prefix' => 'user'], function () {
-
     /** Страница настроек */
     Route::get('/settings', 'Pages@userSettings')->name('usersettings');
-
 });
 
 

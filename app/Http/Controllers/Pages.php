@@ -200,4 +200,41 @@ class Pages extends \App\Http\Controllers\Main
 
     }
 
+
+    /**
+     * Страница монтажа
+     */
+    public static function montage(Request $request) {
+
+        if (!$user = Session::get('user'))
+            return redirect("/");
+
+        if (!parent::checkRight(['admin','montage']))
+            return abort(404);
+
+        if ($request->id) {
+
+            $montage = \App\Http\Controllers\Montage\Montage::getDataOneMontage($request);
+
+            if (!$montage)
+                return abort(404);
+
+            return view('montage.montage', [
+                'montage' => $montage,
+            ]);
+        }
+
+        return view('montage.main');
+
+    }
+
+    /**
+     * Страница с картинкой акта
+     */
+    public static function createJpegAct(Request $request) {
+
+        return \App\Http\Controllers\Montage\Montage::createJpegAct($request);
+
+    }
+
 }

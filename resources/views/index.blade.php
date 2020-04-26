@@ -12,7 +12,7 @@
         <link href="/libs/fontawesome-free-5.12.0-web/css/all.css" rel="stylesheet">
     </head>
 
-    <body class="bg-light">
+    <body class="bg-light cursor-default">
 
         <div id="head" style="{{ isset($__user) ? 'padding-top: 63px;' : '' }}">
             @include('header')
@@ -34,6 +34,7 @@
         <script src="/app/app-admin.js?{{ config('app.version') }}"></script>
         <script src="/app/app-application.js?{{ config('app.version') }}"></script>
         <script src="/app/app-service.js?{{ config('app.version') }}"></script>
+        <script src="/app/app-montage.js?{{ config('app.version') }}"></script>
         @yield('script')
         <script>
             $(() => {

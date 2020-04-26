@@ -76,6 +76,20 @@ Route::group([
     });
 
 
+    Route::group(['prefix' => 'montage'], function () {
+        Route::match(['get','post'], '/getDataForStart', 'Montage\Montage@getDataForStart');
+        Route::match(['get','post'], '/start', 'Montage\Montage@start');
+        Route::match(['get','post'], '/getOneMontage', 'Montage\Montage@getOneMontage');
+        Route::match(['get','post'], '/searchCollegue', 'Montage\Montage@searchCollegue');
+        Route::match(['get','post'], '/changeInput', 'Montage\Montage@changeInput');
+        Route::post('/uploadFile', 'Montage\Montage@uploadFile');
+        Route::match(['get','post'], '/deleteFile', 'Montage\Montage@deleteFile');
+        Route::match(['get','post'], '/doneMontage', 'Montage\Montage@doneMontage');
+        Route::match(['get','post'], '/sendComment', 'Montage\Montage@sendComment');
+        Route::match(['get','post'], '/allMontagesList', 'Montage\Montage@allMontagesList');
+    });
+
+
     /** Админ панель */
     Route::group(['prefix' => 'admin'], function () {
 

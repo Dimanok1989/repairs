@@ -314,4 +314,13 @@ class Service extends Main
 
     }
 
+    /**
+     * Создание акта word
+     */
+    public static function createWordFile(Request $request) {
+
+        $phpWord = new \PhpOffice\PhpWord\PhpWord();
+
+    }
+
 }
