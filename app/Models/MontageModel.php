@@ -270,11 +270,16 @@ class MontageModel extends Model
      */
     public static function getUsersAddList($id) {
 
-        return DB::table('montage_users')
+        $data = DB::table('montage_users')
         ->select('montage_users.*', 'users.firstname', 'users.lastname', 'users.fathername')
-        ->join('users', 'montage_users.userId', '=', 'users.id')
-        ->where('montage_users.montageId', $id)
-        ->get();
+        ->join('users', 'montage_users.userId', '=', 'users.id');
+
+        if (is_array($id))
+            $data = $data->whereIn('montage_users.montageId', $id);
+        else
+            $data = $data->where('montage_users.montageId', $id);
+
+        return $data->get();
 
     }
 
@@ -306,6 +311,19 @@ class MontageModel extends Model
         ->where([
             ['montage_comments.montageId', $id],
         ])
+        ->get();
+
+    }
+
+    /**
+     * Количество комментариев
+     */
+    public static function getCountComments($ids) {
+
+        return DB::table('montage_comments')
+        ->select(DB::raw('count(*) as count, montageId'))
+        ->whereIn('montageId', $ids)
+        ->groupBy('montageId')
         ->get();
 
     }
@@ -346,6 +364,24 @@ class MontageModel extends Model
     public static function getFoldersListFromIds($ids) {
 
         return DB::table('montage_folders')->whereIn('id', $ids)->get();
+
+    }
+
+    public static function getAllCompletedMontagesFromPeriod($request) {
+
+        return DB::table('montage')
+        ->select(
+            'montage.*',
+            'users.firstname',
+            'users.lastname',
+            'users.fathername',
+            'montage_folders.name as place',
+            'montage_folders.main as folderMain'
+        )
+        ->leftjoin('users', 'users.id', '=', 'montage.user')
+        ->leftjoin('montage_folders', 'montage_folders.id', '=', 'montage.folder')
+        ->whereBetween('montage.date', [$request->start ?? date("Y-m-d"), $request->stop ?? date("Y-m-d")])
+        ->get();
 
     }
 

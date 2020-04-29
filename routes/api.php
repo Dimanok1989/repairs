@@ -87,6 +87,8 @@ Route::group([
         Route::match(['get','post'], '/doneMontage', 'Montage\Montage@doneMontage');
         Route::match(['get','post'], '/sendComment', 'Montage\Montage@sendComment');
         Route::match(['get','post'], '/allMontagesList', 'Montage\Montage@allMontagesList');
+        Route::match(['get','post'], '/excel', 'Montage\Files@excel');
+        Route::match(['get','post'], '/zip', 'Montage\Files@zip');
     });
 
 
@@ -136,15 +138,10 @@ Route::group([
         /** Удаление возврат подпункта ремонта */
         Route::match(['get','post'], '/subPointRepairShow', 'Admin\Projects@subPointRepairShow');
 
-        /** Удаление возврат подпункта ремонта */
+        /** Список всех машин */
         Route::match(['get','post'], '/getBusList', 'Garage\Garage@getBusList');
-
-
-
-
-
-
-
+        
+        
 
         
 

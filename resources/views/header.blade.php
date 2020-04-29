@@ -76,7 +76,7 @@
                 <a href="/admin/users/groups" class="list-group-item py-1 list-group-item-action{{ route('adminusersgroups') == url()->current() ? " active" : "" }}"><i class="fas fa-users mr-1"></i>Группы</a>                
                 <a href="/admin/bus" class="list-group-item py-1 list-group-item-action{{ route('adminbus') == url()->current() ? " active" : "" }}"><i class="fas fa-bus-alt mr-1"></i>Подвижной состав</a>
                 <a href="/admin/insp" class="list-group-item py-1 list-group-item-action disabled"><i class="fas fa-clipboard-list mr-1"></i></i>Приёмка</a>
-                {{-- <a href="/admin/montage" class="list-group-item py-1 list-group-item-action{{ strripos(url()->current(), '/admin/montage') ? " active" : "" }}"><i class="fas fa-swatchbook mr-1"></i>Монтаж</a> --}}
+                <a href="/admin/montage" class="list-group-item py-1 list-group-item-action{{ strripos(url()->current(), '/admin/montage') ? " active" : "" }}"><i class="fas fa-swatchbook mr-1"></i>Монтаж</a>
             @endif
 
         </div>

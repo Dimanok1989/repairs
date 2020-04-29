@@ -34,7 +34,7 @@
 
     </form>
 
-    <table class="table table-sm mt-4">
+    <table class="table table-sm mt-4 table-adaptive" id="content-table">
         <thead class="thead-dark">
             <tr>
                 <th scope="col">#</th>
@@ -50,7 +50,7 @@
         </tbody>
     </table>
 
-    <div class="text-center" id="loading-table">
+    <div class="text-center" id="loading-table" style="display: none;">
         <div class="spinner-border" role="status">
             <span class="sr-only">Загрузка...</span>
         </div>

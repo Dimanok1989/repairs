@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers\Montage;
 
+use Session;
 use App\Http\Controllers\Main;
 use Illuminate\Http\Request;
-use Session;
 use Illuminate\Support\Facades\Storage;
 
 use App\Models\MontageModel;
 use App\Models\MontageData;
+use DB;
 
 class Montage extends Main
 {
@@ -117,7 +118,9 @@ class Montage extends Main
             
             $row->formatSize = parent::formatSize($row->size);
 
-            $file = "montages/{$data->folder}/{$data->bus}/{$row->name}";
+            $bus = (int) $data->bus;
+
+            $file = "montages/{$data->folder}/{$bus}/{$row->name}";
             $row->link = Storage::disk('public')->url($file);
             
             if ($row->del == 0)
@@ -131,6 +134,22 @@ class Montage extends Main
             
             $row->fio = parent::getUserFioAll($row);
             $data->users[] = $row;
+
+        }
+
+        // Комментарии
+        $data->comments = [];
+        foreach (MontageModel::getCommentsList($data->id) as $row) {
+            
+            $row->fio = parent::getUserFioAll($row, 1);
+            $row->dateAdd = parent::createDate($row->date);
+
+            $row->link = false;
+
+            if ($row->file)
+                $row->link = "/storage/montages/" . $data->folder . "/" . $data->bus . "/" . $row->name;
+
+            $data->comments[] = $row;
 
         }
 
@@ -152,23 +171,6 @@ class Montage extends Main
         // Список пользователей в избранном
         $favs = MontageModel::getFavoritUsersList($request);
         $fav = self::updateUserRowData($favs, true);
-
-        // Комментарии
-        $montage->comments = [];
-        foreach (MontageModel::getCommentsList($montage->id) as $row) {
-            
-            $row->fio = parent::getUserFioAll($row, 1);
-            $row->dateAdd = parent::createDate($row->date);
-
-            $row->link = false;
-
-            if ($row->file)
-                $row->link = "/storage/montages/" . $montage->folder . "/" . $montage->bus . "/" . $row->name;
-
-            $montage->comments[] = $row;
-
-        }
-        
 
         return parent::json([
             'montage' => $montage,
@@ -389,7 +391,8 @@ class Montage extends Main
         //     return parent::error("Монтаж уже кто-то завершил, данные менять теперь нельзя", 4010);
 
         // Путь до каталога с файлами монтажа
-        $dir = "montages/" . $montage->folder . "/" . $montage->bus;
+        $bus = (int) $montage->bus;
+        $dir = "montages/" . $montage->folder . "/" . $bus;
 
         // Првоерка и создание каталога
         if (!Storage::disk('public')->exists($dir))
@@ -548,7 +551,8 @@ class Montage extends Main
             return parent::error("Монтаж уже кто-то завершил, данные менять теперь нельзя", 4009);
 
         // Путь до каталога с файлами монтажа
-        $dir = "montages/" . $montage->folder . "/" . $montage->bus . "/";
+        $bus = (int) $montage->bus;
+        $dir = "montages/" . $montage->folder . "/" . $bus . "/";
         Storage::disk('public')->copy($dir . $file->name, $dir . "DELETED_" . $file->name);
 
         $del = MontageModel::deleteFile($request->id, "DELETED_" . $file->name);
@@ -620,8 +624,8 @@ class Montage extends Main
         if ($request->busName == "add" AND !$request->busNameEdit)
             $inputs[] = "busNameEdit";
         
-        if (!$request->busNum)
-            $inputs[] = "busNum";
+        // if (!$request->busNum)
+        //     $inputs[] = "busNum";
         
         if (!$request->serialNum)
             $inputs[] = "serialNum";
@@ -695,7 +699,8 @@ class Montage extends Main
         self::createTxtInfoDone($montage);
 
         // Копирование автоматического акта
-        $file = "montages/" . $montage->folder . "/" . $montage->bus . "/" . $montage->bus . "_Акт_автоматический.jpg";
+        $bus = (int) $montage->bus;
+        $file = "montages/" . $montage->folder . "/" . $montage->bus . "/" . $bus . "_Акт_автоматический.jpg";
         $link = env('APP_URL') . "/montage/act" . $montage->id;
         $contents = file_get_contents($link);
 
@@ -732,93 +737,11 @@ class Montage extends Main
             $text .= "{$input->name}: {$input->value}\n";
 
         // Каталог с файлами монтажа
+        $montage->bus = (int) $montage->bus;
         $file = "montages/" . $montage->folder . "/" . $montage->bus . "/" . date("Y-m-d H:i:s") . ".txt";
 
         // Сохранение файла в папку
         Storage::disk('public')->put($file, $text);
-
-    }
-
-    /**
-     * Наложение данных монтажа на картинку с шаблоном акта
-     */
-    public static function createJpegAct(Request $request) {
-
-        // Каталог с шаблонами
-        $dir = public_path("templates/montage");
-
-        // Шаблон акта
-        $img = imagecreatefromjpeg("{$dir}/antison-1.jpg");
-
-        // Данные монтажа
-        if (!$montage = self::getDataOneMontage($request))
-            return self::doneCreateJpegAct($img);
-
-        // Данные каталога
-        if (!$place = MontageModel::getFolderData($montage->folder))
-            return self::doneCreateJpegAct($img);
-
-        // Данные филиала
-        if (!$filial = MontageModel::getFolderData($place->main))
-            return self::doneCreateJpegAct($img);
-
-        // Данные для акта
-        $data = [];
-        foreach ($montage->inputs as $input)
-            $data[$input->name] = $input->value;
-
-        // Цвет текста
-        $color = imagecolorallocate($img, 63, 72, 204);
-
-        // Путь к шрифту
-        $font = "{$dir}/CALIBRI.TTF";
-
-        // $img - Изображение
-        // 25 - размер шрифта
-        // 0 - угол поворота
-        // 812 - смещение по горизонтали
-        // 226 - смещение по вертикали
-
-        imagettftext($img, 25, 0, 812, 226, $color, $font, $montage->dateCompleted ?? date("d.m.Y"));
-        imagettftext($img, 30, 0, 576, 783, $color, $font, "Андреянова Василия Владимировича");
-        imagettftext($img, 30, 0, 437, 1408, $color, $font, $filial->name);
-        imagettftext($img, 30, 0, 476, 1468, $color, $font, $place->name);
-
-        // МАК-адрес
-        $pos = 480;
-        if (isset($data['macAddr'])) {
-            for ($i = 0; $i <= mb_strlen($data['macAddr']); $i++) {
-                imagettftext($img, 38, 0, $pos, 1553, $color, $font, mb_substr($data['macAddr'], $i, 1));
-                $pos += 79;
-            }
-        }
-
-        // Серийный номер
-        $pos = 1283;
-        if (isset($data['serialNum'])) {
-
-            $data['serialNum'] = str_replace("WM19120177S", "", $data['serialNum']);
-
-            for ($i = 0; $i <= mb_strlen($data['serialNum']); $i++) {
-                imagettftext($img, 38, 0, $pos, 1673, $color, $font, mb_substr($data['serialNum'], $i, 1));
-                $pos += 75;
-            }
-
-        }
-
-        imagettftext($img, 30, 0, 400, 1792, $color, $font, $data['iccid'] ?? "");
-        imagettftext($img, 30, 0, 1105, 1923, $color, $font, $montage->bus ?? "");
-        imagettftext($img, 30, 0, 707, 1982, $color, $font, $data['busNum'] ?? "");
-
-        return self::doneCreateJpegAct($img);
-
-    }
-
-    public static function doneCreateJpegAct($img) {
-
-        header('Content-type: image/jpeg');
-        imagejpeg($img);
-        imagedestroy($img);
 
     }
 
@@ -849,43 +772,285 @@ class Montage extends Main
 
     public static function getOneRowInAllMontage($rows) {
 
-        $temp = $data = [];
+        $temp = $data = []; // Данные на вывод
 
-        $ids = [];
-        $foldersId = [];
+        $ids = []; // Список идентификакторов найденных строк монтажа
+        $foldersId = []; // Список идентификаторов папок
 
+        // Первичная сборка данных
         foreach ($rows as $row) {
 
-            $ids[] = $row->id;
+            $ids[] = $row->id; // Сбор идентификаторов монтажа
 
+            // Сбор мдентификаторов каталогов
             if (!in_array($row->folderMain, $foldersId))
                 $foldersId[] = $row->folderMain;
 
-            $row->dateAdd = parent::createDate($row->date);
-            $row->fio = parent::getUserFioAll($row, 1);
+            $row->dateAdd = parent::createDate($row->date); // Дата создания
+            $row->dateCompeted = parent::createDate($row->completed); // Дата завершения
+
+            $row->fio = parent::getUserFioAll($row, 1); // ФИО завершившего онтаж
             
-            $temp[] = $row;
+            $temp[] = $row; // Первичные данные
 
         }
 
+        // Список всех сотрудников в монтаже
         $users = [];
-        foreach (MontageModel::countUsersFromMontage($ids) as $row)
-            $users[$row->montageId] = $row->count;
+        foreach (MontageModel::getUsersAddList($ids) as $row) {
+            $row->fio = parent::getUserFioAll($row, 1);
+            $users[$row->montageId][] = $row;
+        }
 
+        // Данные каталогов
         $folders = [];
         foreach (MontageModel::getFoldersListFromIds($foldersId) as $row)
             $folders[$row->id] = $row->name;
 
+        // Заполненные данные
+        $inputs = [];
+        foreach (MontageModel::whereIn('montageId', $ids)->get() as $row)
+            $inputs[$row->montageId][] = $row;
+
+        $comments = [];
+        foreach (MontageModel::getCountComments($ids) as $row)
+            $comments[$row->montageId] = $row->count;
+
+        // Окончательая обработка
         foreach ($temp as $row) {
 
-            $row->countUsers = isset($users[$row->id]) ? $users[$row->id] - 1 : 0;
-            $row->filial = $folders[$row->folderMain] ?? false;
+            // Список всех сотрудников в монтаже
+            $row->users = $users[$row->id] ?? [];
+            // Количество сотрудников в монтаже
+            $row->countUsers = isset($users[$row->id]) ? count($users[$row->id]) - 1 : 0;
+
+            // Количество сотрудников в монтаже
+            $row->comments = $comments[$row->id] ?? 0;
+
+            // Наименование филиала
+            $row->filial = $folders[$row->folderMain] ?? "";
+
+            // Добавление данных
+            $row->inputs = [];
+
+            if (isset($inputs[$row->id]))
+                foreach ($inputs[$row->id] as $input)
+                    $row->inputs[$input->name] = $input->value;
+
+            $row->catItems = self::getCatItems($row);
 
             $data[] = $row;
 
         }
 
         return $data;
+
+    }
+
+    /**
+     * Метод формирует массив для заполнения ячеек экселя
+     */
+    public static function getCatItems($row) {
+
+        $time = strtotime($row->completed);
+
+        $fios = [];
+        foreach ($row->users as $user)
+            $fios[] = $user->fio;
+
+        return [
+            date("d.m.Y", $time),
+            date("H:i", $time),
+            $row->place,
+            $row->bus,
+            $row->inputs['busNum'] ?? "",
+            $row->inputs['vinNum'] ?? "",
+            $row->inputs['serialNum'] ?? "",
+            $row->inputs['macAddr'] ?? "",
+            $row->inputs['iccid'] ?? "",
+            count($row->users),
+            implode("; ", $fios),
+            env("APP_URL") . "/montage" . $row->id,
+        ];
+
+    }
+
+    /**
+     * Вывод данных завершенного монтажа для эксель отчетчета
+     */
+    public static function getAllCompletedMontagesFromPeriod(Request $request) {
+
+        $data = MontageModel::getAllCompletedMontagesFromPeriod($request);
+
+        return self::getOneRowInAllMontage($data);
+
+    }
+
+    public static function ParceData(Request $request) {
+
+        $data = [];
+
+        $users = [
+            'Самойленко' => 2,
+            'Андреянов' => 13,
+            'Маслов' => 16,
+            'Найданов' => 17,
+            'Шрамков' => 20,
+            'Колгаев Дмитрий Петрович' => 1,
+            'Xtk' => 2,
+            'Шохонов' => 18,
+            'Иванов' => 22,
+            'Морковин' => 19,
+            'Lvbnhbq' => 2,
+            'Колгаев' => 1,
+            'Найданов В.В.' => 17,
+            'Гейдер А.Р.' => 21,
+        ];
+
+        $indic = [
+            'fileact' => 'act',
+            'filesim' => 'sim',
+            'filebus' => 'bus',
+            'filesn' => 'serialn',
+            'filevin' => 'vin',
+            'filecam' => 'cam',
+            'fileelectr' => 'electr',
+            'fileindic' => 'indic',
+            'comment' => 'comment',
+        ];
+
+        // $montages = DB::table('montage_temp')
+        // ->select('montage_temp.*', 'montage_folders.id as folder')
+        // ->leftjoin('montage_folders', 'montage_folders.name', '=', 'montage_temp.place')
+        // ->get();
+
+        // foreach ($montages as $row) {
+        //     $data[] = [
+        //         'id' => $row->id,
+        //         'bus' => $row->bus,
+        //         'folder' => $row->folder,
+        //         'date' => $row->create_at,
+        //         'completed' => $row->completed,
+        //     ];
+        // }
+
+        // DB::table('montage')->insert($data);
+
+        //--------------------------------------------------------
+
+        // foreach (DB::table('montage_temp_data')->where('type', NULL)->get() as $row) {
+
+        //     $value = $row->value;
+
+        //     if (in_array($row->name, ['macAddr','vinNum','busNum','serialNum']))
+        //         $value = mb_convert_case($value, MB_CASE_UPPER, "UTF-8");
+
+        //     if (in_array($row->name, ['macAddr','vinNum','busNum','serialNum']))
+        //         $value = parent::transliterateGosNum($value);
+
+        //     if (in_array($row->name, ['macAddr','vinNum','busNum','serialNum']))
+        //         $value = preg_replace('/\s+/', '', $value);
+
+        //     $data[] = [
+        //         'montageId' => $row->idMontage,
+        //         'name' => $row->name,
+        //         'value' => $value,
+        //     ];
+
+        // }
+
+        // DB::table('montage_data')->insert($data);
+
+        //--------------------------------------------------------
+
+        // foreach (DB::table('montage_temp_data')->where([
+        //     ['type', 'file'],
+        //     ['del', NULL]
+        // ])->get() as $row) {
+
+        //     $data[] = [
+        //         'type' => $indic[$row->name] ?? null,
+        //         'name' => $row->value,
+        //         'oldName' => $row->value,
+        //         'mimeType' => 'image/jpeg',
+        //         'montageId' => $row->idMontage,
+        //     ];
+
+        // }
+
+        // DB::table('montage_files')->insert($data);
+
+        //--------------------------------------------------------
+
+        // $added = [];
+
+        // foreach (DB::table('montage_temp_users')->get() as $row) {
+
+        //     $user = $users[$row->fio] ?? null;
+
+        //     if (!isset($added[$row->idMontage]))
+        //         $added[$row->idMontage] = $user;
+
+        //     $data[] = [
+        //         'montageId' => $row->idMontage,
+        //         'userId' => $user,
+        //         'userAdd' => $added[$row->idMontage] != $user ? $added[$row->idMontage] : null,
+        //     ];
+
+        // }
+
+        // DB::table('montage_users')->insert($data);
+
+        //--------------------------------------------------------
+
+        // foreach (DB::table('montage_comment')->get() as $row) {
+
+        //     if ($row->type == 1) {
+
+        //         $file = [
+        //             'type' => 'comment',
+        //             'name' => $row->comment,
+        //             'oldName' => $row->comment,
+        //             'mimeType' => 'image/jpeg',
+        //             'montageId' => $row->idMontage,
+        //             'user' => $users[$row->name] ?? null,
+        //             'date' => $row->create_at,
+        //         ];
+
+        //         $fileid = DB::table('montage_files')->insertGetId($file);
+        //         $comment = NULL;
+
+        //     }
+        //     else {
+
+        //         $file = [];
+        //         $fileid = NULL;
+        //         $comment = $row->comment;
+
+        //     }
+
+        //     $commentRow = [
+        //         'montageId' => $row->idMontage,
+        //         'userId' => $users[$row->name] ?? null,
+        //         'comment' => $comment,
+        //         'file' => $fileid,
+        //         'date' => $row->create_at,
+        //     ];
+        //     DB::table('montage_comments')->insertGetId($commentRow);
+
+        //     $data[] = [
+        //         'file' => $file,
+        //         'comment' => $commentRow,
+        //     ];
+
+        // }
+
+        // DB::table('montage_users')->insert($data);
+
+        echo json_encode($data);
+        return;
+
+        // dd($montages);
 
     }
 

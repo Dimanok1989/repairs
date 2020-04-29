@@ -233,7 +233,7 @@ class Pages extends \App\Http\Controllers\Main
      */
     public static function createJpegAct(Request $request) {
 
-        return \App\Http\Controllers\Montage\Montage::createJpegAct($request);
+        return \App\Http\Controllers\Montage\Files::createJpegAct($request);
 
     }
 

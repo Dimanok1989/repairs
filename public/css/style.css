@@ -61,6 +61,34 @@ nav.menu i {
     }
 }
 
+.table-adaptive .table-adaptive-minim {
+    display: none;
+}
+@media screen and (max-width: 516px) {
+
+    .table-adaptive thead {
+        display: none;
+    }
+
+    .table-adaptive tbody tr > *{
+        display: block;
+    }
+    .table-adaptive tbody tr > *:not(.no-data-info):before {
+        content: attr(data-th);
+        font-weight: bold;
+        display: inline-block;
+        margin-right: 10px;
+    }
+    .table-adaptive tbody tr > th {
+        background: #212529;
+        color: #fff;
+    }
+    .table-adaptive .table-adaptive-minim {
+        display: inline-block;
+    }
+
+}
+
 .cursor-default { cursor: default; }
 .cursor-pointer { cursor: pointer; }
 

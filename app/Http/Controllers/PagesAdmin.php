@@ -62,4 +62,14 @@ class PagesAdmin extends Main
 
     }
 
+    /** Главная страница монтажа */
+    public static function montage(Request $request) {
+
+        if (!parent::checkRight('admin'))
+            return abort(404);
+
+        return view('admin.montage');
+
+    }
+
 }

@@ -16,6 +16,8 @@
         "irazasyed/telegram-bot-sdk": "^2.0",
         "laravel/framework": "^7.0",
         "laravel/tinker": "^2.0",
+        "phpoffice/phpexcel": "^1.8",
+        "phpoffice/phpspreadsheet": "^1.11",
         "phpoffice/phpword": "^0.17.0"
     },
     "require-dev": {

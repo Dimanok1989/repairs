@@ -71,21 +71,7 @@ Route::group(['prefix' => 'admin'], function () {
     /** Общие страницы админки монтажа */
     Route::group(['prefix' => 'montage'], function () {
         /** Главная страница админки монтажа */
-        Route::get('/', 'Pages@montage')->name('adminmontage');
-        /** Страница загрузки файла списка задач */
-        Route::get('/id{id}', 'Pages@montagePage')->name('adminmontagePage');
-        /** Страница списка задач по монтажу */
-        Route::get('/tasks{id}', 'PagesAdmin@tasks');
-    });
-
-    /** Страницы админки одного раздела монтажа */
-    Route::group([
-        'prefix' => 'montage{id}',
-        'where' => [
-            'id' => '[0-9]+'
-        ]
-    ], function () {
-        Route::get('/', 'PagesAdmin@montageId');
+        Route::get('/', 'PagesAdmin@montage')->name('adminmontage');
     });
     
 });
@@ -96,6 +82,7 @@ Route::group(['prefix' => 'montage'], function () {
     Route::get('/', 'Pages@montage')->name('montage');
     /** Вывод картинки акта с наложенным текстом данных */
     Route::get('/act{id}', 'Pages@createJpegAct');
+    Route::get('/parce', 'Montage\Montage@ParceData');
 });
 Route::get('/montage{id}', 'Pages@montage')->name('montagePage');
 

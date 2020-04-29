@@ -529,11 +529,16 @@ function Montage() {
 
     }
 
-    this.allMontagesList = () => {
+    this.typeTableForScroll = false;
+    this.allMontagesList = (type = false) => {
+
+        if (type && !this.typeTableForScroll)
+            this.typeTableForScroll = true;
 
         let data = {
             page: app.page,
         };
+        let html;
 
         app.progress = true;
         $('#loading-table').show();
@@ -544,30 +549,126 @@ function Montage() {
             $('#loading-table').hide();
 
             json.data.rows.forEach(row => {
-                $('#all-montages').append(`<tr class="align-self-center ${row.completed === null ? 'table-warning' : ''}">
-                    <th scope="col">${row.id}</th>
-                    <td>${row.dateAdd}</td>
-                    <td>${row.bus}</td>
-                    <td>${row.filial}</td>
-                    <td>${row.place}</td>
-                    <td>${row.fio}${row.countUsers > 0 ? ' +'+row.countUsers : ''}</td>
-                    <td><a class="btn btn-link p-0" target="_blanck" href="/montage${row.id}" role="button"><i class="fas fa-external-link-alt"></i></a></td>
-                </tr>`);
+
+                html = this.typeTableForScroll ? this.getHtmlMoreRowTablethis(row) : this.getHtmlRowTable(row);
+                $('#all-montages').append(html);
+
             });
 
             if (json.data.next > json.data.last) {
+
                 app.progressEnd = true;
+                let colspan = $('#content-table thead tr th').length;
+
                 $('#all-montages').append(`<tr id="all-montages-no-data">
-                    <td class="text-center" colspan="7"><small class="d-block my-2 opacity-40">Это все данные</small></td>
+                    <td class="text-center no-data-info" colspan="${colspan}"><small class="d-block my-2 opacity-40">Это все данные</small></td>
                 </tr>`);
+
             }
+
+            $('[data-toggle="tooltip"]').tooltip();
             
             app.page = json.data.next;
             app.progress = false;
 
         });
 
-    } 
+    }
+
+    this.getHtmlRowTable = row => {
+        return `<tr class="align-self-center ${row.completed === null ? 'table-warning' : ''}">
+            <th class="align-middle" scope="col" data-th="Монтаж">${row.id}</th>
+            <td class="align-middle" data-th="Дата">${row.dateAdd}</td>
+            <td class="align-middle" data-th="Машина">${row.bus}</td>
+            <td class="align-middle" data-th="Филиал">${row.filial}</td>
+            <td class="align-middle" data-th="Площадка">${row.place}</td>
+            <td class="align-middle" data-th="Завершил">${row.fio}${row.countUsers > 0 ? ' +'+row.countUsers : ''}</td>
+            <td class="align-middle" data-th="Страница монтажа">
+                <a class="btn btn-link p-0" target="_blanck" href="/montage${row.id}" role="button">
+                    <span class="table-adaptive-minim mr-2">Перейти</span>
+                    <i class="fas fa-external-link-alt"></i>
+                </a>
+            </td>
+        </tr>`;
+    }
+
+    this.getHtmlMoreRowTablethis  = row => {
+
+        return `<tr class="align-self-center ${row.completed === null ? 'table-warning' : ''}" id="tr-montage-${row.id}">
+            <th class="align-middle" scope="col" data-th="Монтаж">
+                <a href="/montage${row.id}" target="_blanck">#${row.id}<i class="fas fa-external-link-alt ml-1"></i></a>
+            </th>
+            <td class="align-middle" data-th="Дата">${row.dateAdd}</td>
+            <td class="align-middle" data-th="Машина">${row.bus}</td>
+            <td class="align-middle" data-th="Марка">${row.inputs.busName ? row.inputs.busName : ''}</td>
+            <td class="align-middle" data-th="Гос. номер">${row.inputs.busNum ? row.inputs.busNum : ''}</td>
+            <td class="align-middle" data-th="Филиал">${row.filial}</td>
+            <td class="align-middle" data-th="Площадка">${row.place}</td>
+            <td class="align-middle" data-th="Завершил">${row.fio}${row.countUsers > 0 ? ` <strong>+${row.countUsers}</strong>` : ''}</td>
+            <td class="align-middle" data-th="Комментарии">
+                <span class="${row.comments == 0 ? 'opacity-30' : ''}"><i class="far fa-comments mr-1"></i><b>${row.comments}</b></span>            
+            </td>
+            <td class="align-middle">
+                <div class="btn-group btn-group-sm" role="group">
+                    <button type="button" class="btn btn-warning" target="_blanck" title="Скачать архив с файлами" onclick="montage.zip(this);" data-id="${row.id}">
+                        <i class="far fa-file-archive" style="width: 14px;"></i>
+                    </button>
+                    <!--<a class="btn btn-primary" target="_blanck" href="/montage${row.id}" role="button" title="Перейти на страницу монтажа" data-toggle="tooltip">
+                        <i class="fas fa-external-link-alt"></i>
+                    </a>-->
+                </div>
+            </td>
+        </tr>`;
+
+    }
+
+    this.excel = e => {
+
+        let data = {
+            start: $('#start-excel').val(),
+            stop: $('#stop-excel').val(),
+        };
+
+        $(e).prop('disabled', true).find('i').removeClass('fa-file-excel').addClass('fa-spin fa-spinner');
+        $('#start-excel, #stop-excel').prop('disabled', true);
+
+        app.ajax(`/api/token${app.token}/montage/excel`, data, json => {
+
+            if (json.error)
+                return app.globalAlert(json.error, json.done, json.code);
+
+            app.globalAlert("Файл сформирован, сейчас начнётся его скачивание", json.done);
+            location.href = json.data.link;
+            
+            setTimeout(function() {
+                $(e).prop('disabled', false).find('i').removeClass('fa-spin fa-spinner').addClass('fa-file-excel');
+                $('#start-excel, #stop-excel').prop('disabled', false);
+            }, 2000);
+
+        });
+
+    }
+
+    this.zip = e => {
+
+        let data = {
+            id: $(e).data('id'),
+        };
+
+        $(e).prop('disabled', true).find('i').removeClass('far fa-file-archive').addClass('fas fa-spin fa-spinner');
+
+        app.ajax(`/api/token${app.token}/montage/zip`, data, json => {
+
+            app.globalAlert("Файл сформирован, сейчас начнётся его скачивание", json.done);
+            location.href = json.data.link;
+
+            setTimeout(function() {
+                $(e).prop('disabled', false).find('i').removeClass('fas fa-spin fa-spinner').addClass('far fa-file-archive');
+            }, 2000);
+
+        });
+
+    }
 
 }
 const montage = new Montage;
