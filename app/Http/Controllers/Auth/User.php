@@ -33,7 +33,7 @@ class User extends Main
     public static function getRandomPass() {
 
         // Символы, которые будут использоваться в пароле
-        $chars = "qazxswedcvfrtgbnhyujmkiolp1234567890QAZXSWEDCVFRTGBNHYUJMKIOLP!@";
+        $chars = "qazxswedcvfrtgbnhyujmkiolp1234567890QAZXSWEDCVFRTGBNHYUJMKIOLP";
 
         // Количество символов в пароле.
         $max = 7;

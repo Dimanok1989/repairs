@@ -94,28 +94,29 @@ function Application() {
             $.each(json.data.files, (i,row) => {
 
                 if (row.error) {
-                    $('#images-data').append(`<div class="col mb-4">    
-                        <div class="card text-white bg-danger h-100 text-left"> 
-                            <div class="card-header bg-transparent p-2">Ошибка</div>                 
-                            <div class="card-body p-2">
-                                <small>${row.name} ${row.error}</small>
-                            </div>
-                        </div>
+                    $('#images-data').append(`<div class="mx-auto my-3 px-2 text-left" style="max-width: 400px;" id="file-block-${row.id}">
+                        <div class="text-danger"><strong>Ошибка</strong> ${row.error}</div>
+                        <small>Файл ${row.name}</small>
                     </div>`);
+
                 }
                 else {
-                    $('#images-data').append(`<div class="col mb-4" id="card-img-row-${row.id}">    
-                        <div class="card h-100">
+
+                    app.fileList.push(row);
+                    let imgId = app.fileList.length - 1;
+
+                    $('#images-data').append(`<div class="d-flex align-items-center mx-auto my-2 px-2" style="max-width: 400px;" id="file-block-${row.id}">
+                        <div class="card h-100 cursor-pointer hover-link" data-id="${imgId}" onclick="app.showImg(this);" style="width: 100px;">
                             <div class="item-responsive item-16by9">
                                 <div class="item-responsive-content"></div>
-                                <img src="${row.link}" class="d-none img-fluid" alt="${row.name}" onload="$(this).removeClass('d-none');">
+                                <img src="${row.link}" class="img-fluid" alt="${row.name}" onload="$(this).removeClass('d-none');">
                             </div>
                             <input type="hidden" name="images[]" value="${row.id}" />
-                            <!-- <div class="card-body p-2">
-                                <button type="button" class="btn btn-danger btn-sm" onclick="application.deleteImg(this); data-id="${row.id}"><i class="fas fa-trash"></i></button>
-                            </div> -->
                         </div>
+                        <div class="flex-grow-1 text-truncate px-2 text-left">${row.name}</div>
+                        <div class="delete-button"><i class="fas fa-trash hover-link" onclick="application.deleteFileAddApplication(this);" data-id="${row.id}" data-file="${imgId}" title="Удалить"></i></div>
                     </div>`);
+
                 }
             });
 
@@ -145,6 +146,18 @@ function Application() {
             return app.globalAlert("Сервер не справился с загрузкой файлов, если Вы загружаете одновременно несколько файлов, попробуйте загрузить их по одному. Если ошибка повторится, то обновите страницу и попробуйте загрузить файлы снова и, если ошибка повторится, обратитесь к администрации сайта", "error", err.status);
 
         }, true);
+
+    }
+
+    this.deleteFileAddApplication = e => {
+
+        let id = $(e).data('id'),
+            imgId = $(e).data('file');
+
+        $(e).removeClass('fa-trash').addClass('fa-spin fa-spinner');
+
+        $('#file-block-'+id).remove();
+        delete app.fileList[imgId];
 
     }
 
@@ -222,7 +235,7 @@ function Application() {
         return `<a href="/id${row.linkId}" class="list-group-item list-group-item-action text-left ${color}">
             <div class="d-flex w-100 justify-content-between">
                 <div>
-                    <span class="mr-2 opacity-50">#${row.id}</span>
+                    <span class="mr-2 opacity-50">#${row.ida}</span>
                     <span class="font-weight-bold">${row.bus}</span>
                 </div>
                 <small>${row.dateAdd}</small>
@@ -307,7 +320,7 @@ function Application() {
                     <h5 class="card-title mb-0">${row.bus}</h5>
                     <small class="opacity-80">${row.dateAdd}</small>
                 </div>
-                <h6 class="card-subtitle pt-1 opacity-70">#${row.id} ${row.clientName}</h6>
+                <h6 class="card-subtitle pt-1 opacity-70">#${row.ida} ${row.clientName}</h6>
                 ${this.getHtmlStatusApplication(row)}
                 <p class="mt-2 mb-1 font-weight-light">${row.breaksListText}</p>
                 ${row.comment ? `<p class="mb-1 font-weight-light font-italic"><i class="fas fa-quote-left opacity-50 mr-2"></i>${row.comment}</p>` : ``}
@@ -336,7 +349,7 @@ function Application() {
             return `<div><span class="text-danger font-weight-bold">Удалена</span>${row.delComment ? (row.deleteDate ? ` ${row.deleteDate}` : '')+` по причине: ${row.delComment}` : ''}</div>`;
 
         if (row.combine)
-            return `<div class="text-success font-weight-bold"><i class="fas fa-angle-double-right"></i> Присоединена к заявке #${row.combine}</div>`;
+            return `<div class="text-success font-weight-bold"><i class="fas fa-angle-double-right"></i> Присоединена к заявке</div>`;
 
         if (row.changed && !row.changedId)
             return `<div class="text-primary font-weight-bold"><i class="fas fa-exchange-alt"></i> Подменный фонд</div>`;
@@ -780,7 +793,7 @@ function Application() {
                 <div class="card my-3" id="content-application-done-card">
                     <div class="card-body py-3">
                         <h5 class="card-title mb-0">Завершение заявки</h5>
-                        <h6 class="card-subtitle pt-1 opacity-70">#${appli.id} от ${appli.dateAddTime}</h6>
+                        <h6 class="card-subtitle pt-1 opacity-70">#${appli.ida} от ${appli.dateAddTime}</h6>
                         <div class="font-weight-bold"><i class="fas fa-bus"></i> ${appli.bus}</div>
                         <small>${appli.breaksListText}</small>
                         <hr />
@@ -1140,18 +1153,23 @@ function Application() {
                     </div>`);
                 }
                 else {
-                    block.append(`<div class="input-group input-group-sm mt-2" id="file-added-${row.id}">
-                        <div class="input-group-prepend">
-                            <button class="btn btn-danger btn-delete-file" type="button" data-id="${row.id}" data-type="appdone" onclick="application.deleteFile(this);"><i class="fa fa-trash" aria-hidden="true"></i></button>
-                        </div>
-                        <input type="text" class="form-control" placeholder="Наименование файла" value="${row.name}" readonly />
-                        <div class="input-group-append">
-                            <button class="btn btn-success btn-show-file" type="button" data-id="${row.id}" onclick="app.showImg(this);"><i class="fa fa-eye" aria-hidden="true"></i></button>
-                        </div>
-                       <input type="hidden" value="${row.id}" name="${name}[]" />
-                    </div>`);
 
-                    app.fileList[row.id] = row;
+                    app.fileList.push(row);
+                    let imgId = app.fileList.length - 1;
+
+                    block.append(`<div class="d-flex align-items-center mx-auto mt-2 px-2" style="max-width: 500px;" id="file-added-${row.id}">
+                        <div class="card h-100 cursor-pointer hover-link" data-id="${imgId}" onclick="app.showImg(this);" style="width: 100px;">
+                            <div class="item-responsive item-16by9">
+                                <div class="item-responsive-content"></div>
+                                <img src="${row.link}" class="img-fluid" alt="${row.name}" onload="$(this).removeClass('d-none');">
+                            </div>
+                            <input type="hidden" value="${row.id}" name="${name}[]" />
+                        </div>
+                        <div class="flex-grow-1 text-truncate px-2 text-left">${row.name}</div>
+                        <div class="delete-button">
+                            <i class="fas fa-trash hover-link" onclick="application.deleteFile(this);" data-type="appdone" data-id="${row.id}" title="Удалить"></i>
+                        </div>
+                    </div>`);
 
                 }
             });

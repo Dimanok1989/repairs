@@ -64,16 +64,23 @@ function Admin() {
 
     this.getHtmlUserRow = (row, update = false) => {
 
-        return `<li id="user-list-item-${row.id}" class="list-group-item list-group-item-action text-left${row.ban == 1 ? ' list-group-item-danger' : ''}"${update ? ` style="opacity: .4;" ` : ''} data-user="${row.id}">
-            <div class="d-flex w-100 justify-content-between">
-                <div class="d-flex align-items-center">
-                    <div class="btn-group" role="group">
+        return `<li id="user-list-item-${row.id}" class="list-group-item list-group-item-action- text-left${row.ban == 1 ? ' list-group-item-danger' : ''}"${update ? ` style="opacity: .4;" ` : ''} data-user="${row.id}">
+            <div class="d-flex w-100 justify-content-between mb-1">
+                <div class="d-flex align-items-baseline">
+                    <!-- <div class="btn-group" role="group">
                         <button id="btn-user-menu-${row.id}" type="button" class="btn ${row.ban == 1 ? 'btn-danger' : 'btn-dark'} btn-sm align-middle rounded-circle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fas fa-ellipsis-v" style="width: 14px;"></i></button>
                         <div class="dropdown-menu" aria-labelledby="btn-user-menu-${row.id}">
                             <button class="dropdown-item" type="button" onclick="admin.userData(this);" data-id="${row.id}"><i class="fas fa-user-edit mr-1"></i>Редактировать</button>
                             <button class="dropdown-item" type="button" data-id="${row.id}" onclick="admin.userAccess(this);"><i class="fas fa-user-cog mr-1"></i>Права доступа</button>
                             <button class="dropdown-item user-ban" type="button" onclick="admin.userBan(this);" data-ban="${row.ban}"><i class="fas ${row.ban == 1 ? 'fa-user-check' : 'fa-user-slash'} mr-1"></i>${row.ban == 1 ? 'Разблокировать' : 'Заблокировать'}</button>
                         </div>
+                    </div> -->
+                    <i class="d-block fas fa-ellipsis-v hover-link text-center" id="btn-user-menu-${row.id}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="width: 20px;"></i>
+                    <div class="dropdown-menu shadow" aria-labelledby="btn-user-menu-${row.id}">
+                        <button class="dropdown-item" type="button" onclick="admin.userData(this);" data-id="${row.id}"><i class="fas fa-user-edit mr-1"></i>Редактировать</button>
+                        <button class="dropdown-item" type="button" data-id="${row.id}" onclick="admin.userAccess(this);"><i class="fas fa-user-cog mr-1"></i>Права доступа</button>
+                        <button class="dropdown-item user-ban" type="button" onclick="admin.userBan(this);" data-ban="${row.ban}"><i class="fas ${row.ban == 1 ? 'fa-user-check' : 'fa-user-slash'} mr-1"></i>${row.ban == 1 ? 'Разблокировать' : 'Заблокировать'}</button>
+                        <button class="dropdown-item" type="button" data-id="${row.id}" onclick="admin.passReset(this);"><i class="fas fa-key mr-1"></i>Сбросить пароль</button>
                     </div>
                     <h5 class="d-inline mb-0 ml-2">@${row.login}</h5>
                 </div>
@@ -106,6 +113,12 @@ function Admin() {
             $(this).removeClass('is-invalid');
         });
 
+        $('#modal-user form #firstname, #modal-user form #lastname').on('change', this.autoLogin);
+        $('#modal-user form #login').on('change', () => {
+            this.autoLoginOff = $('#modal-user form #login').val() ? true : false;
+        });
+        this.autoLoginOff = false;
+
         app.ajax(`/api/token${this.token}/admin/getDataForUser`, data, json => {
 
             if (json.error)
@@ -132,10 +145,41 @@ function Admin() {
                 $('#modal-user #modal-add-title').text('Данные сотрудника');
                 $('#modal-user #save-user-data').data('id', user.id);
 
+                $('#modal-user form #firstname, #modal-user form #lastname, #modal-user form #login').off('change');
+
             }
 
             $('#modal-user #loading-modal').addClass('d-none');
             $('#modal-user form #phone').mask("+7 (999) 999-9999");
+
+        });
+
+    }
+
+    this.autoLoginOff = false;
+    this.autoLogin = e => {
+
+        if (this.autoLoginOff)
+            return this;
+
+        let data = {
+            lastname: $('#modal-user form #lastname').val(),
+            firstname: $('#modal-user form #firstname').val(),
+            login: $('#modal-user form #login').val(),
+        };
+
+        $('#modal-user form #login').prop('disabled', true);
+        $('#modal-user #save-user-data').prop('disabled', true);
+
+        app.ajax(`/api/token${this.token}/admin/autoLogin`, data, json => {
+
+            $('#modal-user form #login').prop('disabled', false);
+            $('#modal-user #save-user-data').prop('disabled', false);
+
+            if (json.error)
+                return app.globalAlert(json.error, json.done, json.code);
+
+            $('#modal-user form #login').val(json.data.login);
 
         });
 
@@ -191,6 +235,60 @@ function Admin() {
 
         });
         
+    }
+
+    /** Сбросить пароль */
+    this.passReset = e => {
+
+        let data = {
+            id: $(e).data('id'),
+        };
+
+        this.modal = $('#modal-user-reset-pass');
+
+        this.modal.find('#loading-modal').removeClass('d-none');
+        this.modal.find('#save-data').prop('disabled', true).text('Сбросить').data('id', data.id);
+        this.modal.find('#pass-user').text('******');
+        this.modal.find('#fio-user').removeClass('text-success').text('Поиск данных...');
+
+        this.modal.modal('show');
+
+        app.ajax(`/api/token${this.token}/admin/passReset`, data, json => {
+
+            this.modal.find('#loading-modal').addClass('d-none');
+
+            if (json.error)
+                return app.globalAlert(json.error, json.done, json.code);
+
+            this.modal.find('#save-data').prop('disabled', false);
+            this.modal.find('#fio-user').text(json.data.user.fio);
+
+        });
+
+    }
+
+    this.passResetDone = e => {
+
+        let data = {
+            id: $(e).data('id'),
+        };
+
+        $(e).prop('disabled', true);
+        this.modal.find('#loading-modal').removeClass('d-none');
+
+        app.ajax(`/api/token${this.token}/admin/passResetDone`, data, json => {
+
+            $(e).prop('disabled', false)
+            this.modal.find('#loading-modal').addClass('d-none');
+
+            if (json.error)
+                return app.globalAlert(json.error, json.done, json.code);
+
+            $(e).text('Сбросить ещё');
+            this.modal.find('#pass-user').addClass('text-success').text(json.data.newpass);
+
+        });
+
     }
 
     /** Блокировка/Разблокировка сотрудника */

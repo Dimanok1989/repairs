@@ -34,7 +34,7 @@ class SearchModel
             $id = (int) $request->text;
 
             if ($id == $request->text)
-                $query->orWhere('applications.id', 'LIKE', $request->text);
+                $query->orWhere('applications.ida', 'LIKE', $request->text);
 
         })
         ->orderBy('applications.date', 'DESC')

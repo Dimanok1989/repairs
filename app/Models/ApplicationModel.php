@@ -17,6 +17,17 @@ class ApplicationModel
     }
 
     /**
+     * Последний идентификатор заявки заказчика
+     * 
+     * @param Int $id Идентификатор заказчика
+     */
+    public static function getLastIdApplication($id) {
+
+        return DB::table('applications')->where('clientId', $id)->max('ida');
+
+    }
+
+    /**
      * Счетчик открытых заявок по проектам
      */
     public static function getCountActiveApplication($clients = []) {

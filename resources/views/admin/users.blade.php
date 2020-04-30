@@ -6,21 +6,6 @@
 
 <div class="mx-auto content-block-width" id="sub-content">
 
-    {{-- <table class="table table-sm">
-        <thead>
-            <tr>
-                <th scope="col" style="border: none;">#id</th>
-                <th scope="col" style="border: none;">ФИО</th>
-                <th scope="col" style="border: none;">Группа</th>
-                <th scope="col" style="border: none;">Логин</th>
-                <th scope="col" style="border: none;">Телефон</th>
-                <th scope="col" style="border: none;">email</th>
-            </tr>
-        </thead>
-        <tbody>
-        </tbody>
-    </table> --}}
-
     <h4 class="my-3">Сотрудники</h4>
 
     <div class="input-group">
@@ -44,7 +29,7 @@
     
 </div>
 
-<div class="modal fade" id="modal-user" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="modal-add-title" aria-hidden="true">
+<div class="modal" id="modal-user" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="modal-add-title" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
 
@@ -120,7 +105,7 @@
     </div>
 </div>
 
-<div class="modal fade" id="modal-user-access" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="modal-add-title" aria-hidden="true">
+<div class="modal" id="modal-user-access" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="modal-add-title" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
@@ -142,6 +127,38 @@
                     <div>
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Отмена</button>
                         <button type="button" class="btn btn-primary" id="save-data" onclick="admin.saveUserAccess(this);">Сохранить</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="modal-user-reset-pass" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="modal-add-title" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modal-add-title">Сброс пароля</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">                    
+                <p class="mb-1" id="fio-user">&nbsp;</p>
+                <div class="d-flex justify-content-between px-4">
+                    <div class="font-weight-bold">Пароль</div>
+                    <div class="text-muted" id="pass-user">******</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="d-flex w-100 justify-content-between">
+                    <div>
+                        <div class="spinner-grow" role="status" id="loading-modal">
+                            <span class="sr-only">Загрузка...</span>
+                        </div>
+                    </div>
+                    <div>
+                        <button type="button" class="btn btn-primary" id="save-data" onclick="admin.passResetDone(this);" disabled>Сбросить</button>
                     </div>
                 </div>
             </div>

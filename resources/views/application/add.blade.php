@@ -68,13 +68,6 @@
         <input type="hidden" name="project" value="{{ $count == 1 ? $projectskey : '0' }}"/>
         <input type="hidden" name="client" value="{{ $data->id }}" />
 
-        <button type="button" class="btn btn-secondary btn-sm btn-block mt-4 position-relative" onclick="$('#imagesform').trigger('click');" id="imagesformbutton">
-            <span><i class="far fa-image mr-2"></i>Добавить фото</span>
-            <div class="progress position-absolute d-none" style="top: 5px; left: 5px; bottom: 5px; right: 5px; height: auto;" id="imagesformprogress">
-                <div class="progress-bar progress-bar-striped bg-dark progress-bar-animated" role="progressbar" style="width: 0;" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
-            </div>
-        </button>
-
         <p class="font-weight-bold mt-3 mb-2">Комментарий к заявке</p>
         <div class="input-group mb-4">
             <textarea class="form-control" name="comment" rows="5"></textarea>
@@ -87,7 +80,14 @@
             </div>
         @endif
 
-        <div id="images-data" class="row row-cols-1 row-cols-md-3 text-center"></div>
+        <button type="button" class="btn btn-secondary btn-sm btn-block mt-3 position-relative" onclick="$('#imagesform').trigger('click');" id="imagesformbutton">
+            <span><i class="far fa-image mr-2"></i>Добавить фото</span>
+            <div class="progress position-absolute d-none" style="top: 5px; left: 5px; bottom: 5px; right: 5px; height: auto;" id="imagesformprogress">
+                <div class="progress-bar progress-bar-striped bg-dark progress-bar-animated" role="progressbar" style="width: 0;" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
+        </button>
+
+        <div id="images-data" class="my-3 text-center"></div>
 
         <button type="button" class="btn btn-outline-secondary mb-3" onclick="application.addNewApplication(this);" id="button-add-application">Добавить</button>
 

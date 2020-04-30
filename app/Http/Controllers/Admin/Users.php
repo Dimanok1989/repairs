@@ -102,6 +102,9 @@ class Users extends Main
 
         }
 
+        if ($user)
+            $user->fio = parent::getUserFioAll($user);
+
         return parent::json([
             'user' => $user,
             'group' => UserModel::getGroupList(),
@@ -668,6 +671,79 @@ class Users extends Main
         return parent::json([
             'del' => UserModel::delFavCollegue($request),
         ]); 
+
+    }
+
+    /**
+     * Автоматическая подборка логина
+     */
+    public static function autoLogin(Request $request) {
+
+        $login = "";
+        
+        $firstname = parent::transliterate($request->firstname);
+        $firstname = substr($firstname, 0, 3);
+        $login .= $firstname;
+
+        $lastname = parent::transliterate($request->lastname);
+        $lastname = substr($lastname, 0, 3);
+        $login .= $lastname;
+
+        $login = strtolower($login);
+
+        $check = $login;
+
+        $count = 1;
+        while (UserModel::checkLogin($login)) {
+            $login = $check . $count;
+            $count++;
+        }
+
+        return parent::json([
+            'login' => $login,
+        ]);
+
+    }
+
+    /**
+     * Данные для сброса пароля
+     */
+    public static function passReset(Request $request) {
+
+        return self::getDataForUser($request);
+
+    }
+
+    /**
+     * Сброс пароля
+     */
+    public static function passResetDone(Request $request) {
+
+        if (!parent::checkRight('admin', $request->__user))
+            return parent::error("Доступ к настрокам прав пользователей ограничен", 7001);
+
+        if (!$request->id OR $request->id == "")
+            return parent::error("Неправильный идентификатор", 7002);
+
+        // Генерация случайного пароля
+        $pass = User::getRandomPass();
+
+        // Шифровка пароля
+        $request->pass = User::passHash($pass);
+
+        // Создание нового пользователя
+        if (!UserModel::resetPass($request))
+            return parent::error("Новый пользователь не создан", 7003);
+
+        // Запись истории пароля
+        UserModel::writePassStory([
+            'userId' => $request->id,
+            'pass' => Crypt::encrypt($pass),
+        ]);
+
+        return parent::json([
+            'newpass' => $pass,
+        ]);
 
     }
 

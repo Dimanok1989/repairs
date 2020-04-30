@@ -125,7 +125,7 @@ function Service() {
         return `<div class="p-2 px-3 my-2 card text-left">
             <div class="justify-content-start align-items-center">
                 <i class="fas ${row.projectIcon} mr-1 opacity-50"></i>
-                <a href="${row.link}" title="Заявка #${row.id}">Заявка #${row.id}</a>
+                <a href="${row.link}" title="Заявка #${row.ida}">Заявка #${row.ida}</a>
                 <span class="ml-2 font-weight-bold">${row.name}</span>
             </div>
             <p class="mb-0 text-break">

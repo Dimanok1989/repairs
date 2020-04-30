@@ -522,5 +522,18 @@ class UserModel
 
     }
 
+    /**
+     * Сброс пароля
+     */
+    public static function resetPass($req) {
+
+        return DB::table('users')
+        ->where('id', $req->id)->limit(1)
+        ->update([
+            'pass' => $req->pass,
+        ]);
+
+    }
+
 
 }

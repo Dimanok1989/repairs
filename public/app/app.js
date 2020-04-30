@@ -556,7 +556,7 @@ function App() {
     }
     this.searchText = "";
     this.replaceQuery = text => {
-        let searched = String(text).replace(this.searchText, '<mark class="px-0 font-weight-bold">'+this.searchText+'</mark>');
+        let searched = String(text).replace(this.searchText, '<mark class="px-0 font-weight-bold bg-warning">'+this.searchText+'</mark>');
         return searched;
     }
     /** Вывод найденных заявок */
@@ -593,7 +593,7 @@ function App() {
                         <small class="opacity-80">${row.dateAdd}</small>
                     </div>
                     <div class="d-flex justify-content-start align-items-center">
-                        <a href="${row.appLink}" class="mr-3" target="_blank">Заявка #${this.replaceQuery(row.id)}</a>
+                        <a href="${row.appLink}" class="mr-3" target="_blank">Заявка #${this.replaceQuery(row.ida)}</a>
                         ${application.getHtmlStatusApplication(row)}
                     </div>                    
                     <p class="mt-0 mb-1 font-weight-light">${row.breaksListText}</p>

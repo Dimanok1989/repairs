@@ -507,8 +507,12 @@ class Application extends Main
 
         }
 
+        // Последний идентификатор заявки
+        $last = ApplicationModel::getLastIdApplication($request->client);
+
         // Формирование данных для добавления заявки
         $data = [
+            'ida' => $last + 1,
             'clientId' => $request->client,
             'project' => $request->project,
             'bus' => $request->number,

@@ -107,6 +107,11 @@ Route::group([
         Route::match(['get','post'], '/userGetAccess', 'Admin\Users@userGetAccess');
         /** Сохранение индивидуальных прав сотрудника */
         Route::match(['get','post'], '/saveUserAccess', 'Admin\Users@saveUserAccess');
+        /** Автоматическая подборка логина */
+        Route::match(['get','post'], '/autoLogin', 'Admin\Users@autoLogin');
+        /** Сброс пароля */
+        Route::match(['get','post'], '/passReset', 'Admin\Users@passReset');
+        Route::match(['get','post'], '/passResetDone', 'Admin\Users@passResetDone');
 
         /** Главная страница списка групп пользователей */
         Route::match(['get','post'], '/getUsersGroupsList', 'Admin\Users@getUsersGroupsList');

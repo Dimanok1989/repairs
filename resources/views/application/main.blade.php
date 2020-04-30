@@ -1,6 +1,6 @@
 @extends('index')
 
-@section('title', 'Заявка #'.$application->id)
+@section('title', 'Заявка #'.$application->ida)
 
 @section('content')
 

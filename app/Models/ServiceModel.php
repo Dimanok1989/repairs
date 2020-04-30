@@ -46,7 +46,15 @@ class ServiceModel
             $where[] = ['c.del', NULL];
     
         return DB::table('applications_comment as a')
-        ->select('a.*', 'b.firstname', 'b.lastname', 'b.fathername', 'd.name', 'c.project')
+        ->select(
+            'a.*',
+            'b.firstname',
+            'b.lastname',
+            'b.fathername',
+            'd.name',
+            'c.project',
+            'c.ida'
+        )
         ->join('users as b', 'a.userId', '=', 'b.id')
         ->join('applications as c', 'a.applicationId', '=', 'c.id')
         ->join('projects as d', 'c.clientId', '=', 'd.id')

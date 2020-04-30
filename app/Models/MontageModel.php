@@ -344,7 +344,7 @@ class MontageModel extends Model
         )
         ->leftjoin('users', 'users.id', '=', 'montage.user')
         ->leftjoin('montage_folders', 'montage_folders.id', '=', 'montage.folder')
-        ->orderBy('date', 'DESC')->paginate(50);
+        ->orderBy('montage.date', 'DESC')->paginate(50);
 
     }
 
