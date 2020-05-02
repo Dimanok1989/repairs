@@ -3,6 +3,9 @@ function App() {
     /** Токен пользователя для запросов */
     this.token = $('meta[name="token"]').attr('content');
 
+    /** Объект открытого модального окна */
+    this.modal;
+
     /** Данные авторизированного пользователя */
     this.user = {};
 
@@ -81,7 +84,7 @@ function App() {
                 console.log("<<", err);
 
                 if (typeof error == "function")
-                    return error(err);
+                    error(err);
 
                 let jsonerror = typeof err.responseJSON == "object" ? err.responseJSON : false;
 

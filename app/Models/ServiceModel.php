@@ -22,6 +22,16 @@ class ServiceModel
 
 
     /**
+     * Запрос для данных акта
+     */
+    public static function getSerialsDataService($id) {
+
+        return DB::table('device_change_serials')->where('serviceId', $id)->get();
+
+    }
+
+
+    /**
      * Вывод строк для ленты
      */
     public static function getWorkTapeData($request) {
@@ -117,5 +127,22 @@ class ServiceModel
 
     }
 
+    /**
+     * Получение списка ремонта
+     * 
+     * @param Array $ids Массив идентификаторов
+     * @param Bool $sub Таблица пунктов/подпунктов
+     */
+    public static function getRepairList($ids, $sub = false) {
+
+        $table = $sub ? 'project_repair_subpoints as a' : 'project_repair as a';
+
+        return DB::table($table)
+        ->select('a.*', 'b.name')
+        ->leftjoin('devices as b', 'b.id', '=', 'a.device')
+        ->whereIn('a.id', $ids)
+        ->get();
+
+    }
 
 }

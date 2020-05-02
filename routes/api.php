@@ -73,6 +73,11 @@ Route::group([
         /** Лента комментариев */
         Route::match(['get','post'], '/getComments', 'Service\Service@getComments');
 
+        /** Подготовка акта */
+        Route::match(['get','post'], '/actEditData', 'Service\Service@actEditData');
+        Route::match(['get','post'], '/actSaveData', 'Service\Service@actSaveData');
+        Route::match(['get','post'], '/actDownload', 'Service\Service@actDownload');
+
     });
 
 

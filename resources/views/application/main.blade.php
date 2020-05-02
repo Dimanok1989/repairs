@@ -8,11 +8,11 @@
 
 <div class="d-flex justify-content-center align-items-center loading-in-body">
     <div class="spinner-grow text-dark" role="status">
-        <span class="sr-only">Loading...</span>
+        <span class="sr-only">Загрузка...</span>
     </div>
 </div>
 
-<div class="modal fade" id="modal-problem-comment" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="modal-problem-comment-label" aria-hidden="true">
+<div class="modal" id="modal-problem-comment" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="modal-problem-comment-label" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
@@ -37,7 +37,7 @@
     </div>
 </div>
 
-<div class="modal fade" id="modal-cansel-application" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="modal-cansel-application-label" aria-hidden="true">
+<div class="modal" id="modal-cansel-application" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="modal-cansel-application-label" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
@@ -62,7 +62,7 @@
     </div>
 </div>
 
-<div class="modal fade" id="modal-delete-application" data-backdrop="static" tabindex="-1" role="dialog" aria-hidden="true">
+<div class="modal" id="modal-delete-application" data-backdrop="static" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
@@ -86,7 +86,7 @@
     </div>
 </div>
 
-<div class="modal fade" id="modal-application-combine" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="modal-application-combine-label" aria-hidden="true">
+<div class="modal" id="modal-application-combine" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="modal-application-combine-label" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
@@ -117,6 +117,8 @@
         </div>
     </div>
 </div>
+
+@include ('application.serviceActModal')
 
 {{-- <div class="text-left">
 @php

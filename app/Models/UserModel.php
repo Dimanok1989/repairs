@@ -323,6 +323,41 @@ class UserModel
     }
 
     /**
+     * Список сотрудников в группе
+     */
+    public static function getUserFromGroup($ids) {
+
+        return DB::table('users')->whereIn('groupId', $ids)->orderBy('firstname')->get();
+
+    }
+
+    /**
+     * Список администраторов
+     */
+    public static function getAllAdmins() {
+
+        return DB::table('users_group')
+        ->select('users.*')
+        ->join('users', 'users.groupId', '=', 'users_group.id')
+        ->where('users_group.admin', 1)
+        ->get();
+
+    }
+
+    /**
+     * Список администраторов по индивидуальным правам
+     */
+    public static function getAllAdminsFromIndAccess() {
+
+        return DB::table('users_access')
+        ->select('users.*', 'users_access.value')
+        ->join('users', 'users.id', '=', 'users_access.userId')
+        ->where('users_access.access', 'admin')
+        ->get();
+
+    }
+
+    /**
      * Список колонок таблицы группы пользователей с комментариями
      */
     public static function getAccessRowsGroup() {
@@ -331,7 +366,7 @@ class UserModel
         ->select('COLUMN_COMMENT', 'COLUMN_NAME')
         ->where([
             ['TABLE_NAME', 'users_group'],
-            ['TABLE_SCHEMA','repairs.kolgaev.ru'],
+            ['TABLE_SCHEMA', env('DB_DATABASE')],
         ])
         ->whereNotIn('COLUMN_NAME', [
             'id', 'name', 'color', 'descript'

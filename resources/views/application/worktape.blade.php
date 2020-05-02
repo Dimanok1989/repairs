@@ -11,6 +11,8 @@
         </div>
     </div>
 
+    @include ('application.serviceActModal')
+
 @endsection
 
 @section('script')

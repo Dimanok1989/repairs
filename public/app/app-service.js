@@ -44,7 +44,7 @@ function Service() {
     this.getHtmlRowService = row => {
 
         // Блок с фотографиями
-        let images = '';
+        let images = '', acts = '';
 
         $.each(row.imagesData, (i,img) => {
 
@@ -62,15 +62,27 @@ function Service() {
             </div>`;
         });
 
+        acts = '';
+
+        if (row.actDwn || row.act) {
+            acts = `<p class="my-0">
+                ${row.act ? `<i class="fas fa-pen-square hover-link mr-1 text-center" style="width: 20px;" data-toggle="tooltip" title="Подготовить акт" onclick="application.actEditData(this);" data-id="${row.id}"></i>` : ``}
+                ${row.actDwn ? `<i class="fas fa-file-download hover-link text-center" style="width: 20px;" data-toggle="tooltip" title="Скачать акт" onclick="application.actDownload(this);" data-id="${row.id}"></i>` : ``}
+            </p>`;
+        }
+
         return `<div class="card my-3 text-left">
             <div class="card-body py-2">
                 <div class="d-flex justify-content-between align-items-center">
                     <strong>${row.applicationData.bus} ${row.applicationData.clientName}</strong>
                     <small class="opacity-80">${row.dateAdd}</small>
                 </div>
-                <div>
-                    <i class="fas ${row.projectIcon} opacity-60 mr-2"></i>
-                    <a href="${row.applicationLink}" target="_blank">Заявка #${row.applicationId}</a>
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <i class="fas ${row.projectIcon} opacity-60 mr-2"></i>
+                        <a href="${row.applicationLink}" target="_blank">Заявка #${row.applicationId}</a>
+                    </div>
+                    ${acts}
                 </div>
                 <p class="my-0 font-weight-light">${row.usersList}</p>
                 <p class="my-0 font-weight-light">${row.repairsList}</p>

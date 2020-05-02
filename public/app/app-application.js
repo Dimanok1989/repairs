@@ -427,7 +427,8 @@ function Application() {
     this.getHtmlRowService = row => {
 
         // Блок с фотографиями
-        let images = '';
+        let images = '',
+            acts = '';
 
         $.each(row.imagesData, (i,img) => {
 
@@ -443,7 +444,15 @@ function Application() {
                     </div>
                 </div>
             </div>`;
+
         });
+
+        if (row.actDwn || row.act) {
+            acts += `<p class="my-0">
+                ${row.act ? `<i class="fas fa-pen-square hover-link mr-1 text-center" style="width: 20px;" data-toggle="tooltip" title="Подготовить акт" onclick="application.actEditData(this);" data-id="${row.id}"></i>` : ``}
+                ${row.actDwn ? `<i class="fas fa-file-download hover-link text-center" style="width: 20px;" data-toggle="tooltip" title="Скачать акт" onclick="application.actDownload(this);" data-id="${row.id}"></i>` : ``}
+            </p>`;
+        }
 
         return `<div class="card my-3 text-left">
             <div class="card-body py-2">
@@ -451,7 +460,10 @@ function Application() {
                     <strong>${row.changefond ? 'Подменный фонд' : 'Сервис'}</strong>
                     <small class="opacity-80">${row.dateAdd}</small>
                 </div>
-                <p class="my-0 font-weight-light">${row.usersList}</p>
+                <div class="d-flex justify-content-between align-items-center">
+                    <p class="my-0 font-weight-light">${row.usersList}</p>
+                    ${acts}
+                </div>
                 <p class="my-0 font-weight-light">${row.repairsList}</p>
                 ${row.comment ? `<p class="mb-1 font-weight-light font-italic"><i class="fas fa-quote-left opacity-50 mr-2"></i>${row.comment}</p>` : ``}
                 <div class="row row-cols-2 row-cols-md-3${images != "" ? ' mt-3' : ''} px-2">${images}</div>
@@ -1261,6 +1273,98 @@ function Application() {
 
     }
 
+    this.actEditData = e => {
+
+        let data = {
+            id: $(e).data('id'),
+        };
+
+        $(e).removeAttr('onclick').removeClass('fa-pen-square').addClass('fa-spin fa-spinner');
+        app.modal = $('#modal-application-act');
+
+        app.ajax(`/api/token${this.token}/service/actEditData`, data, json => {
+
+            app.modalLoading(app.modal, 'hide');
+
+            $(e).attr('onclick', 'application.actEditData(this);').removeClass('fa-spin fa-spinner').addClass('fa-pen-square');
+
+            if (json.error)
+                return app.globalAlert(json.error, json.done, json.code);
+                
+            app.modal.find('#modal-application-act-label').text(`Акт №${json.data.value.num}`);
+
+            app.modal.find('#engineer').html('<option selected value="0">Выберите исполнителя...</option>');
+            json.data.users.forEach(row => {
+                app.modal.find('#engineer').append(`<option value="${row.id}"${row.admin ? ` class="font-weight-bold"` : ``}>${row.fio}</option>`);
+            });
+
+            app.modal.find('#engineer').val(json.data.service.actData.engineer ? json.data.service.actData.engineer : json.data.service.userId);
+            app.modal.find('#asdu').val(json.data.service.actData.asdu ? json.data.service.actData.asdu : "");
+            app.modal.find('#remark').val(json.data.service.actData.remark ? json.data.service.actData.remark : json.data.value.remark);
+
+
+            app.modal.find('form [name="id"]').val(json.data.service.id);
+            app.modal.find('#save-data').prop('disabled', false);
+
+            app.modal.modal('show');
+
+        }, err => {
+
+            $(e).attr('onclick', 'application.actEditData(this);').removeClass('fa-spin fa-spinner').addClass('fa-pen-square');
+
+        });
+
+    }
+
+    this.actSaveData = e => {
+
+        $(e).prop('disabled', true);
+        app.modalLoading(app.modal, 'show');
+        let data = app.modal.find('form').serializeArray();
+
+        app.ajax(`/api/token${this.token}/service/actSaveData`, data, json => {
+
+            app.modalLoading(app.modal, 'hide');
+            app.modal.modal('hide');
+            
+        }, err => {
+
+            $(e).prop('disabled', false);
+            app.modalLoading(app.modal, 'hide');
+
+        });
+        
+    }
+
+    this.actDownload = e => {
+
+        let data = {
+            id: $(e).data('id'),
+        };
+
+        $(e).removeAttr('onclick').removeClass('fa-file-download').addClass('fa-spin fa-spinner');
+
+        app.ajax(`/api/token${this.token}/service/actDownload`, data, json => {
+
+            if (json.error) {
+                $(e).attr('onclick', 'application.actDownload(this);').removeClass('fa-spin fa-spinner').addClass('fa-file-download');
+                return app.globalAlert(json.error, json.done, json.code);
+            }
+
+            app.globalAlert(`Файл сформирован, сейчас начнется скачивание, если этого не произошло <a href="${json.data.link}" download>воспользуйтесь прямой ссылкой</a>`, json.done);
+            location.href = json.data.link;
+
+            setTimeout(() => {
+                $(e).attr('onclick', 'application.actDownload(this);').removeClass('fa-spin fa-spinner').addClass('fa-file-download');
+            }, 1500);
+
+        }, err => {
+
+            $(e).attr('onclick', 'application.actDownload(this);').removeClass('fa-spin fa-spinner').addClass('fa-file-download');
+
+        });
+
+    }
 
 }
 var application = new Application;

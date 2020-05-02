@@ -38,13 +38,20 @@ class ProjectModel
     /**
      * Список прав доступа к заказчикам
      */
-    public static function getProjectsAccessList($id = false) {
+    public static function getProjectsAccessList($id = false, $type = 1, $client = false) {
+
+        $where = [
+            ['typeAccess', $type],
+        ];
+
+        if ($id)
+            $where[] = ['typeId', $id];
+
+        if ($client)
+            $where[] = ['projectId', $client];
 
         return DB::table('projects_access')
-        ->where([
-            ['typeAccess', 1],
-            ['typeId', $id]
-        ])
+        ->where($where)
         ->get();
 
     }
