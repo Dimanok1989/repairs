@@ -73,6 +73,11 @@ Route::group(['prefix' => 'admin'], function () {
         /** Главная страница админки монтажа */
         Route::get('/', 'PagesAdmin@montage')->name('adminmontage');
     });
+
+    /** Список оборудования */
+    Route::group(['prefix' => 'device'], function () {        
+        Route::get('/', 'PagesAdmin@device')->name('admindevice');
+    });  
     
 });
 

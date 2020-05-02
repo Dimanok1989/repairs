@@ -151,7 +151,10 @@ Route::group([
         /** Список всех машин */
         Route::match(['get','post'], '/getBusList', 'Garage\Garage@getBusList');
         
-        
+        /** Список оборудования */
+        Route::match(['get','post'], '/getDeviceList', 'Garage\Device@getDeviceList');
+        Route::match(['get','post'], '/getDeviceRow', 'Garage\Device@getDeviceRow');
+        Route::match(['get','post'], '/saveDevice', 'Garage\Device@saveDevice');
 
         
 

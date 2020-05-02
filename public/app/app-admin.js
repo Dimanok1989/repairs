@@ -1289,6 +1289,115 @@ function Admin() {
 
     }
 
+    this.getDeviceList = () => {
+
+        $('#loading-rows').show();
+
+        app.ajax(`/api/token${app.token}/admin/getDeviceList`, json => {
+
+            $('#loading-rows').hide();
+
+            if (json.data.devices.length == 0)
+                return $('#list-data').append('<div class="my-4 text-muted" id="no-devices">Данных еще нет</div>');
+
+            let html;
+            json.data.devices.forEach(row => {
+
+                html = this.getDeviceHtmlRow(row);
+                $('#list-data').append(html);
+
+            });
+
+        });
+
+    }
+
+    this.getDeviceHtmlRow = row => {
+        return `<button type="button" class="list-group-item list-group-item-action text-left" id="device-${row.id}" data-id="${row.id}" onclick="admin.getDeviceRow(this);">
+            <div class="font-weight-bold">${row.name}</div>
+            ${row.groupName ? `<small class="text-muted">${row.groupName}</small>` : ''}
+        </button>`;
+    }
+
+    this.getDeviceRow = e => {
+
+        $(e).prop('disabled', true).blur();
+
+        app.modal = $('#modal-device');
+        let data = {
+            id: $(e).data('id') ? $(e).data('id') : false,
+        };
+
+        app.modal.find('form')[0].reset();
+        app.modal.find('form [name="id"]').val('');
+
+        app.modal.modal('show');
+        app.modalLoading(app.modal, 'show');
+
+        app.ajax(`/api/token${app.token}/admin/getDeviceRow`, data, json => {
+
+            $(e).prop('disabled', false);
+            app.modalLoading(app.modal, 'hide');
+
+            app.modal.find('form #group').html('<option selected value="">Выберите группу...</option>');
+            json.data.groups.forEach(row => {
+                app.modal.find('form #group').append(`<option value="${row.id}">${row.name}</option>`);
+            });
+
+            if (json.data.device.groupId)
+                app.modal.find('form #group').val(json.data.device.groupId);
+
+            if (json.data.device.id)
+                app.modal.find('form [name="id"]').val(json.data.device.id);
+
+            if (json.data.device.name)
+                app.modal.find('form #name').val(json.data.device.name);
+
+        }, err => {
+            $(e).prop('disabled', false);
+            app.modalLoading(app.modal, 'hide');
+        });
+
+    }
+
+    this.saveDevice = e => {
+
+        $(e).prop('disabled', true);
+        app.modalLoading(app.modal, 'show');
+
+        let data = app.modal.find('form').serializeArray();
+
+        app.ajax(`/api/token${app.token}/admin/saveDevice`, data, json => {
+
+            $(e).prop('disabled', false);
+            app.modalLoading(app.modal, 'hide');
+
+            if (json.error)
+                return app.globalAlert(json.error, json.done, json.code);
+
+            app.modal.modal('hide');
+
+            let text = app.modal.find(`form #group option[value=${json.data.device.groupId}]`).text();
+            json.data.device.groupName = text;
+
+            let html = this.getDeviceHtmlRow(json.data.device);
+
+            if ($('#device-'+json.data.device.id).length)
+                $('#device-'+json.data.device.id).replaceWith(html);
+            else
+                $('#list-data').prepend(html);
+
+            $('#device-'+json.data.device.id).css('opacity', '.2')
+            .animate({opacity: '1'}, 250);
+
+            $('#no-devices').remove();
+
+        }, err => {
+            $(e).prop('disabled', false);
+            app.modalLoading(app.modal, 'hide');
+        });
+
+    }
 
 }
 const admin = new Admin;
