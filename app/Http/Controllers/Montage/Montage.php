@@ -85,7 +85,7 @@ class Montage extends Main
         ]);
 
         return parent::json([
-            'id' => parent::dec2link($id),
+            'id' => $id,
         ]);
 
     }

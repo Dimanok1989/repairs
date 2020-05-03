@@ -32,11 +32,6 @@ Route::get('/tlg', function() {
 
 });
 
-Route::get('/busInsert', function() {
-    $phpWord = new \PhpOffice\PhpWord\PhpWord();
-    dd($phpWord);
-});
-
 
 /** Админ панель */
 Route::group(['prefix' => 'admin'], function () {

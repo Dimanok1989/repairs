@@ -77,23 +77,19 @@ class Projects extends Main
     }
 
     /**
-     * Получение данных дял списка проектов
+     * Получение данных для списка проектов
      */
     public static function getProjectsListData(Request $request) {
 
         $data = (Object) []; // Объект на вывод
 
         $rows = ProjectModel::getProjectsList();
-
         $tape = ServiceModel::getWorkTapeData($request);
 
         $data->service = self::getFullServicesData($tape, true);
 
-        // Всего страниц
-        $data->last = $tape->lastPage();
-
-        // Следующая страница
-        $data->next = $tape->currentPage() + 1;
+        $data->last = $tape->lastPage(); // Всего страниц
+        $data->next = $tape->currentPage() + 1; // Следующая страница
 
     }
 
@@ -135,6 +131,11 @@ class Projects extends Main
             $data->repair->{$row->type}[] = $row;
         }
 
+        // Получение списка пунктов отмены заявки
+        $data->canseled = (Object) [];
+        foreach (ProjectModel::getProjectCanseledList($data->id) as $row)
+            $data->canseled->{$row->type}[] = $row;
+
         $data->date = parent::createDate($data->create_at);
 
         return $data;
@@ -160,7 +161,10 @@ class Projects extends Main
             'userIdAdd' => $request->__user->id ?? NULL,
         ];
 
-        $id = ProjectModel::createNewPointBreak($data);
+        if ($request->type == "break")
+            $id = ProjectModel::createNewPointBreak($data);
+        elseif ($request->type == "canseled")
+            $id = ProjectModel::createNewPointCansel($data);
 
         $data['id'] = $id;
         $data['del'] = 0;
@@ -204,6 +208,36 @@ class Projects extends Main
     }
 
     /**
+     * Удаление возврат пункта неисправностей
+     */
+    public static function removeCanselPoint(Request $request) {
+
+        // Првоерка прав доступа
+        if (!parent::checkRight('admin', $request->token))
+            return parent::error("Доступ ограничен", 1005);
+
+        // Данные пункта
+        $point = ProjectModel::getProjectCanseledList(false, $request->id);
+        $point = count($point) ? $point[0] : false;
+
+        if (!$point)
+            return parent::error("Данные не найдены", 1006);
+
+        // Идентификатор удаления
+        $del = $point->del == 1 ? 0 : 1;
+
+        // Обнволение данных для вывода
+        $point->del = $del;
+
+        ProjectModel::pointCanselShow($point->id, $del);
+
+        return parent::json([
+            'point' => $point,
+        ]);
+
+    }
+
+    /**
      * Сохранение пункта по емонту
      */
     public static function savePointRepair(Request $request) {
@@ -237,12 +271,20 @@ class Projects extends Main
             'userIdAdd' => $request->__user->id ?? NULL,
             'master' => 0,
             'norm' => 0,
+            'device' => NULL,
+            'deviceGroup' => NULL,
+            'deviceAdd' => NULL,
         ];
 
         if ($request->master)
             $data['master'] = 1;
         else
             $data['norm'] = $request->norma;
+
+        $data = self::addPointDeviceData($data, $request);
+
+        if ((int) $request->id > 0)
+            return self::updateRepairPoint($data, $request, 'updatePointRepair');
 
         $id = ProjectModel::createNewPointRepair($data);
         
@@ -272,6 +314,11 @@ class Projects extends Main
             'norm' => $request->norma,
         ];
 
+        $data = self::addPointDeviceData($data, $request);
+
+        if ((int) $request->id > 0)
+            return self::updateRepairPoint($data, $request, 'updateSubPointRepair');
+
         $id = ProjectModel::createNewSubPointRepair($data);
         
         $data['id'] = $id;
@@ -283,6 +330,63 @@ class Projects extends Main
             'point' => $data,
         ]);
 
+    }
+
+    public static function updateRepairPoint($data, $request, $method) {
+
+        $update = ProjectModel::{$method}($data, $request);
+
+        $request->onlydata = true;
+        $request->sub = $method == "updatePointRepair" ? 0 : 1;
+
+        $data = self::getPointProjectsData($request);
+
+        return parent::json([
+            'slave' => $request->point,
+            'project' => $request->project,
+            'point' => $data,
+            'update' => $update,
+        ]);
+
+    }
+
+    /**
+     * Метод добавления информации об оборудовании в пункты ремонта
+     */
+    public static function addPointDeviceData($data, $request) {
+
+        $data['device'] = NULL;
+        $data['deviceGroup'] = NULL;
+        $data['deviceAdd'] = NULL;
+
+        // Добавление выбранного оборудования для подстановки
+        if ($request->device) {
+
+            if ($request->device == "add")
+                $data['deviceAdd'] = 1;
+            else {
+
+                $device = explode("-", $request->device);
+
+                if (isset($device[0]) AND isset($device[1])) {
+
+                    $key = "";
+                    if ($device[0] == "g")
+                        $key = "deviceGroup";
+                    elseif ($device[0] == "d")
+                        $key = "device";
+
+                    if ($key != "")
+                        $data[$key] = (int) $device[1];
+
+                }
+
+            }
+
+        }
+
+        return $data;
+        
     }
 
     /**
@@ -372,9 +476,12 @@ class Projects extends Main
         // Формирование данных
         $data = [
             'name' => $request->name,
+            'bottoken' => $request->bottoken,
             'telegram' => $request->telegram,
             'access' => $request->access ? 1 : 0,
             'listpoints' => $request->listpoints ? 1 : 0,
+            'place' => $request->place,
+            'templateNum' => $request->templateNum,
         ];
 
         // Обновление данных заказчика
@@ -472,6 +579,43 @@ class Projects extends Main
 
         return parent::json([
             'project' => ProjectModel::getProjectsIdFromName($request->login),
+        ]);
+
+    }
+
+    public static function getPointProjectsData(Request $request) {
+
+        $id = (int) $request->id;
+        $point = [];
+
+        if ($id > 0) {
+
+            $data = $request->sub == 1 ? ProjectModel::getProjectSubRepairsList([$id]) : ProjectModel::getProjectRepairsList([$id]);
+
+            $point = count($data) ? $data[0] : [];
+
+            if ($point) {
+
+                if ($point->device > 0)
+                    $point->deviceSelect = "d-" . $point->device;
+                elseif ($point->deviceGroup > 0)
+                    $point->deviceSelect = "g-" . $point->deviceGroup;
+                elseif ($point->deviceAdd > 0)
+                    $point->deviceSelect = "add";
+                else
+                    $point->deviceSelect = "";
+
+            }
+
+            if ($request->onlydata)
+                return $point;
+
+        }
+
+        return parent::json([
+            'point' => $point,
+            'devices' => \App\Models\Devices::orderBy('name')->get(),
+            'devicesGroup' => \App\Models\DevicesGroup::orderBy('name')->get(),
         ]);
 
     }

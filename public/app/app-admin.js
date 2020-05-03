@@ -751,6 +751,7 @@ function Admin() {
 
                 $('#table-data #break').append(html);
                 $('#table-data #repair').append(html);
+                $('#table-data #canseled').append(html);
 
             });
 
@@ -758,6 +759,8 @@ function Admin() {
             this.printPointBreak(json.data.project.break);
             /** Вывод пунктов ремонта */
             this.printPointRepair(json.data.project.repair);
+            /** Вывод пунктов отмены */
+            this.printPointCansel(json.data.project.canseled);
 
         });
 
@@ -773,7 +776,8 @@ function Admin() {
 
             $.each(rows, (i,row) => {
                 $(`#table-data #break #card-${key} ul`).append(this.htmlPointBreak(row));
-            });        
+            });
+
         });
 
     }
@@ -817,7 +821,7 @@ function Admin() {
         return `<li class="list-group-item list-group-item-action d-flex justify-content-between px-2 py-1${row.del == 1 ? ' list-group-item-secondary' : (newrow ? ' list-group-item-success' : '')}" id="point-repair-${row.id}">
             <div class="text-left">${row.name}${row.master == 0 ? `<strong class="ml-2">${row.norm}</strong>` : `<span class="badge badge-primary badge-pill ml-2">0</span>`}</div>
             <div>
-                ${(row.master == 1 && row.del == 0) ? `<div class="d-inline mx-1" onclick="admin.addPoint(this);" data-type="${row.type}" data-point="${row.id}"><i class="fas fa-plus fa-for-hover"></i></div>` : ``}
+                ${(row.master == 1 && row.del == 0) ? `<div class="d-inline mx-1" onclick="admin.addPoint(this);" data-type="${row.type}" data-point="${row.id}"><i class="fas fa-plus fa-for-hover"></i></div>` : `<div class="d-inline mx-1" onclick="admin.addPoint(this);" data-type="${row.type}" data-id="${row.id}" data-sub="0"><i class="far fa-edit fa-for-hover"></i></div>`}
                 <div class="d-inline mx-1" onclick="admin.removeRepairPoint(this);" data-del="${row.del}" data-type="${row.type}" data-id="${row.id}"><i class="fas fa-eye${row.del == 1 ? '-slash' : '' } fa-for-hover"></i></div>                
             </div>
         </li>`;
@@ -827,8 +831,35 @@ function Admin() {
         return `<li class="list-group-item list-group-item-action list-item-slave-${row.repairId} d-flex justify-content-between px-2 py-1${row.del == 1 ? ' list-group-item-secondary' : (newrow ? ' list-group-item-success' : '')}${row.masterdel ? ' disabled' : ''}" id="sub-point-repair-${row.id}">
             <span class="pl-2"><i class="fas fa-circle fa-xs mr-2 align-middle" style="opacity: .2; font-size: 20%;"></i>${row.name}<strong class="ml-2">${row.norm}</strong></span>
             <div>
+                <div class="d-inline mx-1" onclick="admin.addPoint(this);" data-type="${row.type}" data-id="${row.id}" data-sub="1" data-point="${row.repairId}"><i class="far fa-edit fa-for-hover"></i></div>
                 <div class="d-inline mx-1" onclick="admin.removeRepairSubPoint(this);" data-del="${row.del}" data-type="${row.type}" data-id="${row.id}"><i class="fas fa-eye${row.del == 1 ? '-slash' : '' } fa-for-hover"></i></div>                
             </div>
+        </li>`;
+    }
+
+    /** Вывод пунктов отмены */
+    this.printPointCansel = data => {
+
+        $.each(data, (key,rows) => {
+
+            $(`#table-data #canseled #card-${key} .card-body`).prepend(`<ul class="list-group mb-3"></ul>`);
+            $(`#table-data #canseled #card-${key} .header-titile-card`).append(`<span class="badge badge-primary badge-pill ml-2">${rows.length}</span>`);
+
+            let html;
+
+            $.each(rows, (i,row) => {
+                html = this.htmlPointCansel(row);
+                $(`#table-data #canseled #card-${key} ul`).append(html);
+            });
+
+        });
+
+    }
+    /** HTML код одной строки подпункта ремонта */
+    this.htmlPointCansel = row => {
+        return `<li class="list-group-item list-group-item-action d-flex justify-content-between px-2 py-1${row.del == 1 ? ' list-group-item-secondary' : '' }" id="point-canseled-${row.id}">
+            <div class="text-left">${row.name}</div>
+            <div onclick="admin.removeCanselPoint(this);" data-del="${row.del}" data-type="${row.type}" data-id="${row.id}"><i class="fas fa-eye${row.del == 1 ? '-slash' : '' } fa-for-hover"></i></div>
         </li>`;
     }
 
@@ -852,13 +883,18 @@ function Admin() {
     /** Окно добавления пункта */
     this.addPoint = (e) => {
 
-        let project = $(e).data('pr') ?? $(e).parents('.card').data('pr'),
+        let project = $(e).data('pr') ? $(e).data('pr') : $(e).parents('.card').data('pr'),
             type = $(e).parents('.tab-content').attr('id'),
-            id = $(e).data('id') ?? false,
-            point = $(e).data('point') ?? false;
+            id = $(e).data('id') ? $(e).data('id') : false,
+            point = $(e).data('point') ? $(e).data('point') : false;
 
-        if (type == "break")
+        if (type == "break" || type == "canseled") {
             this.modal = $('#modal-add-point-break');
+            if (type == "break")
+                this.modal.find('h5.modal-title').text("Пункт неисправности");
+            else if (type == "canseled")
+                this.modal.find('h5.modal-title').text("Пункт отмены заявки");
+        }
         else
             this.modal = $('#modal-add-point-repair');
 
@@ -868,6 +904,7 @@ function Admin() {
         this.modal.find('form #norma').prop('disabled', false);
         this.modal.find('form #slave-form input').prop('disabled', false);
         this.modal.find('form #forchangedserials').prop('disabled', true);
+        this.modal.find('form #forchangedfond').prop('disabled', true);
 
         this.modal.find(`form .is-invalid`).each(function() {
             $(this).removeClass('is-invalid');
@@ -883,13 +920,75 @@ function Admin() {
         else
             this.modal.find('form #master-select').removeClass('d-none');
 
-        if (!id) {
-            this.modal.find('#loading-modal').addClass('d-none');
+        this.modal.find('form [name="name"]').prop('disabled', false);
+        this.modal.find('form [name="norma"]').prop('disabled', false);
+        this.modal.find('form [name="master"]').prop('disabled', false);
+
+        this.modal.find('form [name="id"]').remove();
+
+        if (!id && (type == "break" || type == "canseled")) {
+            app.modalLoading(this.modal, 'hide');
             return this.modal.modal('show');
         }
 
-        // app.ajax(`/api/token${this.token}/admin/getPointProjectsData`, json => {
-        // });
+        let data = {
+            id,
+            project,
+            type,
+            point,
+            sub: $(e).data('sub'),
+        };
+
+        this.modal.modal('show');
+        app.modalLoading(this.modal, 'show');
+
+        app.ajax(`/api/token${this.token}/admin/getPointProjectsData`, data, json => {
+
+            this.modal.find('#device').html('<option selected value="">Не выбрано</option><option value="add">Ввести вручную</option>');
+
+            if (json.data.devicesGroup.length)
+                this.modal.find('#device').append('<optgroup label="Группы оборудования" id="device-group"></optgroup>');
+
+            json.data.devicesGroup.forEach(row => {
+                this.modal.find('#device #device-group').append(`<option value="g-${row.id}">${row.name}</option>`);
+            });
+
+            if (json.data.devicesGroup.length)
+                this.modal.find('#device').append('<optgroup label="Оборудование" id="device-row"></optgroup>');
+
+            json.data.devices.forEach(row => {
+                this.modal.find('#device #device-row').append(`<option value="d-${row.id}">${row.name}</option>`);
+            });
+
+            app.modalLoading(this.modal, 'hide');
+            
+            if (!id)
+                return false;
+
+            if (json.data.point.length == 0)
+                return app.globalAlert("Данные пункта не получены", "error");
+
+            let form = this.modal.find('form');
+
+            form.find('[name="name"]').val(json.data.point.name).prop('disabled', true);
+            form.find('[name="norma"]').val(json.data.point.norm).prop('disabled', true);
+            form.find('[name="master"]').prop('disabled', true);
+
+            form.find('[name="device"]').val(json.data.point.deviceSelect);
+
+            if (json.data.point.id)
+                form.append(`<input type="hidden" name="id" value="${json.data.point.id}">`);
+
+            if (json.data.point.changed == 1)
+                form.find('[name="forchanged"]').prop('checked', true).trigger('change');
+
+            if (json.data.point.serials == 1)
+                form.find('[name="forchangedserials"]').prop('checked', true).trigger('change');
+
+            if (json.data.point.fond == 1)
+                form.find('[name="forchangedfond"]').prop('checked', true).trigger('change');
+
+        });
 
     }
 
@@ -897,7 +996,7 @@ function Admin() {
     this.savePointBreak = (e) => {
 
         $(e).prop('disabled', true);
-        this.modal.find('#loading-modal').removeClass('d-none');
+        app.modalLoading(this.modal, 'show');
 
         this.modal.find(`.is-invalid`).each(function() {
             $(this).removeClass('is-invalid');
@@ -908,7 +1007,7 @@ function Admin() {
         app.ajax(`/api/token${this.token}/admin/savePointBreak`, data, json => {
 
             $(e).prop('disabled', false);
-            this.modal.find('#loading-modal').addClass('d-none');
+            app.modalLoading(this.modal, 'hide');
 
             if (json.error) {
                 $.each(json.inputs, (i,row) => {
@@ -923,9 +1022,17 @@ function Admin() {
             if (!pr.find('ul').length)
                 pr.find('.card-body').prepend(`<ul class="list-group mb-3"></ul>`);
 
-            let html = this.htmlPointBreak(json.data.point);
+            let html;
+            
+            if (json.data.type == "break")
+                html = this.htmlPointBreak(json.data.point);
+            else if (json.data.type == "canseled")
+                html = this.htmlPointCansel(json.data.point);
 
             pr.find('ul').append(html);
+
+            $(`#point-${json.data.type}-${json.data.point.id}`).css('opacity', '.2')
+            .animate({opacity: '1'}, 250);
 
             if (!pr.find('.header-titile-card .badge').length)
                 pr.find('.header-titile-card').append(`<span class="badge badge-primary badge-pill ml-2">0</span>`);
@@ -965,6 +1072,34 @@ function Admin() {
 
     }
 
+    /** Удаление возврат пункта отмены */
+    this.removeCanselPoint = e => {
+
+        let data = {
+            id: $(e).data('id'),
+            del: +$(e).data('del'),
+            type: +$(e).data('type'),
+        }
+
+        $(e).find('i').removeAttr('onclick')
+        .removeClass('fa-eye-slash fa-eye fa-for-hover').addClass('fa-spin fa-spinner');
+
+        app.ajax(`/api/token${this.token}/admin/removeCanselPoint`, data, json => {
+
+            if (json.error) {
+                $(e).find('i').attr('onclick', 'admin.removeCanselPoint(this);')
+                .removeClass('fa-spin fa-spinner')
+                .addClass(data.del == 1 ? 'fa-eye-slash fa-for-hover' : 'fa-eye fa-for-hover');
+                return app.globalAlert(json.error, json.done, json.code);
+            }
+
+            $(`#table-data #canseled #point-canseled-${json.data.point.id}`)
+            .replaceWith(this.htmlPointCansel(json.data.point));
+
+        });
+
+    }
+
     /** Выбор мастер пункта ремонта */
     this.selectMasterPointRepair = e => {
 
@@ -976,6 +1111,7 @@ function Admin() {
         }
         else {
             norm.prop('disabled', false);
+            $('#forchanged').trigger('change');
         }
 
     }
@@ -984,7 +1120,7 @@ function Admin() {
     this.selectPointRepairEnterSerials = e => {
 
         let checked = $(e).prop('checked'),
-            checkbox = $('#forchangedserials');
+            checkbox = $('#forchangedserials, #forchangedfond, #device');
 
         if (checked)
             checkbox.prop('disabled', false);
@@ -997,18 +1133,28 @@ function Admin() {
     this.savePointRepair = (e) => {
 
         $(e).prop('disabled', true);
-        this.modal.find('#loading-modal').removeClass('d-none');
+        app.modalLoading(this.modal, 'show');
 
         this.modal.find(`.is-invalid`).each(function() {
             $(this).removeClass('is-invalid');
         });
+
+        this.modal.find('form [name="name"]').prop('disabled', false);
+        this.modal.find('form [name="norma"]').prop('disabled', false);
+        this.modal.find('form [name="master"]').prop('disabled', false);
 
         let data = this.modal.find('form').serializeArray();       
 
         app.ajax(`/api/token${this.token}/admin/savePointRepair`, data, json => {
 
             $(e).prop('disabled', false);
-            this.modal.find('#loading-modal').addClass('d-none');
+            app.modalLoading(this.modal, 'hide');
+
+            if (this.modal.find('form [name="id"]').length) {
+                this.modal.find('form [name="name"]').prop('disabled', true);
+                this.modal.find('form [name="norma"]').prop('disabled', true);
+                this.modal.find('form [name="master"]').prop('disabled', true);
+            }
 
             if (json.error) {
                 $.each(json.inputs, (i,row) => {
@@ -1022,38 +1168,44 @@ function Admin() {
             if (json.data.slave) {
 
                 let pr = $(`#table-data #repair #card-${json.data.project}`),
-                    html = this.htmlSubPointRepair(json.data.point, true);
+                    html = this.htmlSubPointRepair(json.data.point);
 
-                pr.find(`#point-repair-${json.data.slave}`).after(html);
+                if (json.data.update == 1 || json.data.update == 0) {
+                    pr.find(`#sub-point-repair-${json.data.point.id}`).replaceWith(html);
+                }
+                else {
+                    pr.find(`#point-repair-${json.data.slave}`).after(html);
+                    let count = +pr.find(`#point-repair-${json.data.slave} span.badge`).text()+1;
+                    pr.find(`#point-repair-${json.data.slave} span.badge`).text(count);
+                }
 
-                setTimeout(() => {
-                    pr.find(`#sub-point-repair-${json.data.point.id}`).removeClass('list-group-item-success');
-                }, 2000);
-
-                let count = +pr.find(`#point-repair-${json.data.slave} span.badge`).text()+1;
-                pr.find(`#point-repair-${json.data.slave} span.badge`).text(count);
+                $(`#sub-point-repair-${json.data.point.id}`).css('opacity', '.2')
+                .animate({opacity: '1'}, 250);
 
                 return;
 
             }
 
             let pr = $(`#table-data #repair #card-${json.data.point.type}`),
-                html = this.htmlPointRepair(json.data.point, true);
+                html = this.htmlPointRepair(json.data.point);
 
             if (!pr.find('ul').length)
                 pr.find('.card-body').prepend(`<ul class="list-group mb-3"></ul>`);
 
-            pr.find('ul').append(html);
+            if (json.data.update == 1 || json.data.update == 0) {
+                $(`#point-repair-${json.data.point.id}`).replaceWith(html);
+            }
+            else {
+                pr.find('ul').append(html);
+                let count = +pr.find('.header-titile-card .badge').text()+1;
+                pr.find('.header-titile-card .badge').text(count);
+            }
 
-            setTimeout(() => {
-                pr.find(`#point-repair-${json.data.point.id}`).removeClass('list-group-item-success');
-            }, 2000);
+            $(`#point-repair-${json.data.point.id}`).css('opacity', '.2')
+            .animate({opacity: '1'}, 250);
 
             if (!pr.find('.header-titile-card .badge').length)
                 pr.find('.header-titile-card').append(`<span class="badge badge-primary badge-pill ml-2">0</span>`);
-
-            let count = +pr.find('.header-titile-card .badge').text()+1;
-            pr.find('.header-titile-card .badge').text(count);
 
         });
 
@@ -1143,6 +1295,7 @@ function Admin() {
         };
 
         this.modal = $('#modal-settings');
+        this.modal.find('#save-data').prop('disabled', true);
 
         app.ajax(`/api/token${this.token}/admin/getProjectsData`, data, json => {
 
@@ -1160,7 +1313,6 @@ function Admin() {
 
             this.modal.modal('show');
             app.loading(this.modal, 'hide');
-
 
         });
 

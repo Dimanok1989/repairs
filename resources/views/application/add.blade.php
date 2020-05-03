@@ -7,7 +7,7 @@
 <div class="text-center pt-4">
 
     <h4 class="mb-0">{{ $data->name }}</h4>
-    <p class="mb-5">Новая заявка</p>
+    <p class="mb-4">Новая заявка</p>
 
     <div id="select-project" class="w-100 mx-auto {{ $count == 1 ? 'd-none' : '' }}" style="max-width: 500px;">
 

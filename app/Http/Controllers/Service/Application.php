@@ -81,7 +81,6 @@ class Application extends Main
 
     }
 
-
     /**
      * Метод формирвоания строк заявок для вывода по частям
      */
@@ -309,7 +308,6 @@ class Application extends Main
 
     }
 
-
     /**
      * Метод определения иконки проекта
      */
@@ -340,7 +338,6 @@ class Application extends Main
 
     }
 
-
     /**
      * Преобразование строки комментария
      */
@@ -352,7 +349,6 @@ class Application extends Main
         return $row;
 
     }
-
 
     /**
      * Полные данные одной заявки
@@ -391,41 +387,46 @@ class Application extends Main
 
             $buttons = [];
 
-            // Кнопка перехода на мастер заявку
-            if ($application->combine) {
-                $buttons['combined'] = true;
-            }
-            else if (!$application->del) {
-
-                if (parent::checkRight(['admin','applications_done'], $user)) {
-
-                    // Кнопка завершения заявки
-                    if (!$application->done)
-                        $buttons['done'] = true;
-
-                    // Кнопка подменного фонда
-                    if ($application->changed AND !$application->changedId)
-                        $buttons['changed'] = true;
-
+            // Проверка доступа к заказчику
+            if (in_array($application->clientId, $user->clientsAccess)) {
+            
+                // Кнопка перехода на мастер заявку
+                if ($application->combine) {
+                    $buttons['combined'] = true;
                 }
+                else if (!$application->del) {
 
-                if (!$application->done) {
+                    if (parent::checkRight(['admin','applications_done'], $user)) {
 
-                    // Кнопка объединения заявки
-                    if (parent::checkRight(['admin','application_combine'], $user))
-                        $buttons['combine'] = true;
+                        // Кнопка завершения заявки
+                        if (!$application->done)
+                            $buttons['done'] = true;
 
-                    // Кнопка удаления заявки
-                    if (parent::checkRight(['admin','application_del'], $user))
-                        $buttons['del'] = true;
+                        // Кнопка подменного фонда
+                        if ($application->changed AND !$application->changedId)
+                            $buttons['changed'] = true;
 
-                    // Кнопка пометки проблемной заявки
-                    if (parent::checkRight(['admin','application_problem'], $user))
-                        $buttons['problem'] = true;
+                    }
 
-                    // Отмена заявки
-                    // if (parent::checkRight(['admin','applications_cansel'], $user))
-                    //     $buttons['cansel'] = true;
+                    if (!$application->done) {
+
+                        // Кнопка объединения заявки
+                        if (parent::checkRight(['admin','application_combine'], $user))
+                            $buttons['combine'] = true;
+
+                        // Кнопка удаления заявки
+                        if (parent::checkRight(['admin','application_del'], $user))
+                            $buttons['del'] = true;
+
+                        // Кнопка пометки проблемной заявки
+                        if (parent::checkRight(['admin','application_problem'], $user))
+                            $buttons['problem'] = true;
+
+                        // Отмена заявки
+                        if (parent::checkRight(['admin','applications_cansel'], $user))
+                            $buttons['cansel'] = true;
+
+                    }
 
                 }
 
@@ -466,7 +467,6 @@ class Application extends Main
         ]);
 
     }
-
 
     /**
      * Метод создания новой заявки
@@ -563,7 +563,6 @@ class Application extends Main
 
     }
 
-
     /**
      * Метод загрузки файлов в момент создания новой заявки
      */
@@ -654,7 +653,6 @@ class Application extends Main
 
     }
 
-
     /**
      * Отправка комментария по заявке
      */
@@ -724,7 +722,6 @@ class Application extends Main
 
     }
 
-    
     /**
      * Список вариантов присоединения заявки
      */
@@ -815,7 +812,6 @@ class Application extends Main
 
     }
 
-
     /**
      * Метод загрузки файлов при завершении заявки
      */
@@ -824,7 +820,6 @@ class Application extends Main
         return self::uploadImagesAddApplication($request);
 
     }
-
 
     /**
      * Удаение файла 
@@ -1024,7 +1019,6 @@ class Application extends Main
 
     }
 
-
     /**
      * Сбор данных загруженных фотографий
      */
@@ -1072,7 +1066,6 @@ class Application extends Main
 
     }
 
-
     /**
      * Поиск колллег
      */
@@ -1088,5 +1081,62 @@ class Application extends Main
 
     }
 
+    /**
+     * Метод вывод списка отмены заявки
+     */
+    public static function getListCansel(Request $request) {
+
+        if (!parent::checkRight(['admin','application_cansel'], $request->__user))
+            return parent::error("Вы не можете отменять заявки");
+
+        $points = ProjectModel::getProjectCanselListForClietnProject($request);
+
+        return parent::json([
+            'points' => $points,
+        ]);
+
+    }
+
+    public static function applicationCanselSave(Request $request) {
+
+        if (!parent::checkRight(['admin','application_cansel'], $request->__user))
+            return parent::error("Вы не можете отменять заявки");
+
+        $id = (int) $request->id;
+
+        // Проверка наличия идентификаторв
+        if (!$id)
+            return parent::error("Неверный идентификатор", 5000);
+
+        // Проверка выбранных пунктов ремонта
+        if (!$request->cansel AND !$request->comment)
+            return parent::error("Выберите хотя бы один из пунктов причин отмены, либо напишите комментарий", 5001);
+
+        // Данные для записи завершения заявки
+        $data = [
+            'applicationId' => $id,
+            'userId' => $request->__user->id,
+            'comment' => $request->comment,
+            'cansel' => $request->cansel ? implode(',', $request->cansel) : null,
+        ];
+
+        if (!$service = ApplicationModel::createService($data))
+            return parent::error("Невозможно записать данные", 5002);
+
+        $update = [
+            'done' => $service,
+            'cansel' => 1,
+        ];
+
+        // Обновление таблицы с заявкой
+        if (!ApplicationModel::updateApplicationRowForDone($id, $update))
+            return parent::error("Неполучилось обновить данные заявки", 5003);
+
+        return parent::json([
+            'id' => $id,
+            'update' => $update
+        ]);  
+
+    }
 
 }

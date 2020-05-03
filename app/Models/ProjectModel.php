@@ -140,6 +140,31 @@ class ProjectModel
     }
 
     /**
+     * Получение списка пунктов отмены заявки
+     */
+    public static function getProjectCanseledList($razdel = false, $id = false) {
+
+        $where = [];
+
+        if ($razdel)
+            $where[] = ['razdel', $razdel];
+
+        if ($id AND !is_array($id))
+            $where[] = ['id', $id];
+
+        $data = DB::table('project_canseled');
+
+        if ($where)
+            $data = $data->where($where);
+
+        if ($id AND is_array($id))
+            $data = $data->whereIn('id', $id);
+        
+        return $data->orderBy('name')->get();
+
+    }
+
+    /**
      * Список пунктов завершения
      */
     public static function getProjectRepairsList($ids = []) {
@@ -158,6 +183,29 @@ class ProjectModel
     }
 
     /**
+     * Список подпунктов завершения
+     */
+    public static function getProjectCanselList($ids = []) {
+
+        return DB::table('project_canseled')->whereIn('id', $ids)->get();
+
+    }
+
+    /**
+     * Список подпунктов завершения
+     */
+    public static function getProjectCanselListForClietnProject($request) {
+
+        return DB::table('project_canseled')
+        ->where([
+            ['razdel', $request->client],
+            ['type', $request->project],
+            ['del', 0],
+        ])->get();
+
+    }
+
+    /**
      * Сохранение нового пункта неисправности
      */
     public static function createNewPointBreak($data) {
@@ -167,11 +215,33 @@ class ProjectModel
     }
 
     /**
+     * Сохранение нового пункта отмены заявки
+     */
+    public static function createNewPointCansel($data) {
+
+        return DB::table('project_canseled')->insertGetId($data);
+
+    }
+
+    /**
      * Удаление возврат пункта неисправностей
      */
     public static function pointBreakShow($id = false, $del = false) {
 
         return DB::table('project_break')
+        ->where('id', $id)->limit(1)
+        ->update([
+            'del' => $del
+        ]);
+
+    }
+
+    /**
+     * Удаление возврат пункта отмены заявки
+     */
+    public static function pointCanselShow($id = false, $del = false) {
+
+        return DB::table('project_canseled')
         ->where('id', $id)->limit(1)
         ->update([
             'del' => $del
@@ -240,12 +310,36 @@ class ProjectModel
     }
 
     /**
+     * Обновление пункта ремонта
+     */
+    public static function updatePointRepair($data, $request) {
+
+        return DB::table('project_repair')
+        ->where('id', $request->id)
+        ->limit(1)
+        ->update($data);
+
+    }
+
+    /**
      * Сохранение нового подпункта ремонта
      */
     public static function createNewSubPointRepair($data) {
 
         return DB::table('project_repair_subpoints')
         ->insertGetId($data);
+
+    }
+
+    /**
+     * Обновление подпункта ремонта
+     */
+    public static function updateSubPointRepair($data, $request) {
+
+        return DB::table('project_repair_subpoints')
+        ->where('id', $request->id)
+        ->limit(1)
+        ->update($data);
 
     }
 

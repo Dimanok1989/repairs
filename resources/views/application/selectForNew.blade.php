@@ -4,9 +4,10 @@
 
 @section('content')
 
-<div class="mt-4 mb-3 mx-auto content-block-width">
+<div class="mt-4 mb-3 mx-auto" style="max-width: 500px;">
 
-    <h3 class="mb-4">Новая заявка</h3>
+    <h4 class="mb-0">Новая заявка</h4>
+    <p class="mb-4">Выберите заказчика</p>
 
     @forelse($projects as $project)
         <a href="{{ route('addRequest', $project->login) }}" role="button" class="btn btn-primary btn-lg btn-block mb-4">{{ $project->name }}</a>

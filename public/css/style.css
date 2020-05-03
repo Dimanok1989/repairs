@@ -389,3 +389,7 @@ button.close {
     right: 10px;
     z-index: 10;
 }
+
+#repair .list-group-item {
+    border-color: #dfdfdf;
+}

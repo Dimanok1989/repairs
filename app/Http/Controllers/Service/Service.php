@@ -48,6 +48,7 @@ class Service extends Main
         $users = []; // Список сотрудников
         $repairs = []; // Список пунктов выполненных работ
         $subrepairs = []; // Список подпунктов выполненных работ
+        $cansel = []; // Список пунктов отмены заявки
         $appids = []; // Идентификаторы заявок
 
         foreach ($rows as $row) {
@@ -107,6 +108,17 @@ class Service extends Main
                     $row->subrepairs[] = $subrepair;
             }
 
+            // Сбор пунктов выполненных работ
+            $rowcansel = explode(",", $row->cansel);
+            $row->cansels = [];
+            foreach ($rowcansel as $canseled) {
+                if (!in_array($canseled, $cansel) AND $canseled != "")
+                    $cansel[] = (int) $canseled;
+
+                if ($cansel != "")
+                    $row->cansels[] = (int) $canseled;
+            }
+
             // Ссылка на заявку
             $row->applicationLink = route('application', ['link' => parent::dec2link($row->applicationId)]);
 
@@ -148,6 +160,11 @@ class Service extends Main
         $subrepairsdata = [];
         foreach (ProjectModel::getProjectSubRepairsList($subrepairs) as $row)
             $subrepairsdata[$row->id] = $row;
+
+        // Список подпунктов ремонта
+        $canselsdata = [];
+        foreach (ProjectModel::getProjectCanselList($cansel) as $row)
+            $canselsdata[$row->id] = $row;
 
         // Получение данных заявки
         $applicationsdata = [];
@@ -202,6 +219,10 @@ class Service extends Main
 
             foreach ($row->subrepairs as $key => $point)
                 $row->subrepairs[$key] = (int) $point;
+
+            foreach ($row->cansels as $point)
+                if (isset($canselsdata[$point]))
+                    $repairs[] = $canselsdata[$point]->name;
 
             $row->repairsList = implode("; ", $repairs);
 
@@ -621,6 +642,9 @@ class Service extends Main
 
         $template = str_replace('${num}', $service->application->ida, $template);
         $template = str_replace('${y}', $service->application->dates['Y'], $template);
+        $template = str_replace('${year}', $service->application->dates['Y'], $template);
+        $template = str_replace('${busNum}', $service->application->bus, $template);
+        $template = str_replace('${clientId}', $service->application->clientId, $template);
 
         return $template;
 

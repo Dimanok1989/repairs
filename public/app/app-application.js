@@ -353,6 +353,9 @@ function Application() {
 
         if (row.changed && !row.changedId)
             return `<div class="text-primary font-weight-bold"><i class="fas fa-exchange-alt"></i> Подменный фонд</div>`;
+
+        if (row.done && row.cansel)
+            return `<div class="text-danger font-weight-bold"><i class="fas fa-ban"></i> Отменена</div>`;
         
         if (row.done || (row.done && row.changed && row.changedId))
             return `<div class="text-success font-weight-bold"><i class="fas fa-check-square"></i> Завершена</div>`;
@@ -384,8 +387,8 @@ function Application() {
         if (data.buttons.combine)
             left += `<button type="button" class="btn btn-dark mb-3 mx-1" onclick="application.applicationCombineOpen(this);" title="Присоединить заявку"><i class="fas fa-network-wired" style="width: 20px;"></i></button>`;
 
-        if (data.buttons.cansel)
-            left += `<button type="button" class="btn btn-secondary mb-3 mx-1" onclick="application.applicationCansel(this);" title="Отменить заявку" id="app-cansel"><i class="fas fa-ban"></i></button>`;
+        if (data.buttons.cansel && !data.buttons.changed)
+            right += `<button type="button" class="btn btn-secondary mb-3 mx-1" onclick="application.applicationCansel(this);" title="Отменить заявку" id="app-cansel"><i class="fas fa-ban"></i></button>`;
 
         if (data.buttons.del)
             left += `<button type="button" class="btn btn-danger mb-3 mx-1" onclick="application.applicationDelete(this);" title="Удалить заявку" id="app-delete"><i class="fas fa-trash"></i></button>`;
@@ -643,9 +646,65 @@ function Application() {
     }
 
     this.applicationCansel = e => {
+
         $(e).blur();
+
         this.modal = $('#modal-cansel-application');
         this.modal.modal('show');
+
+        this.modal.find('#save-data').prop('disabled', true);
+        this.modal.find('[name="comment"]').prop('disabled', true);
+
+        app.modalLoading(this.modal, 'show');
+
+        app.ajax(`/api/token${app.token}/service/getListCansel`, {
+            id: this.data.application.id,
+            project: this.data.application.project,
+            client: this.data.application.clientId,
+        }, json => {
+
+            app.modalLoading(this.modal, 'hide');
+
+            if (json.error)
+                return app.globalAlert(json.error, json.done, json.code);
+
+            this.modal.find('#save-data').prop('disabled', false);
+            this.modal.find('[name="comment"]').prop('disabled', false);
+
+            this.modal.find('#cansel-points').empty();
+
+            json.data.points.forEach(row => {
+                this.modal.find('#cansel-points').append(`<div class="custom-control custom-checkbox mb-2">
+                    <input type="checkbox" class="custom-control-input" name="cansel[]" id="customCheck${row.id}" value="${row.id}">
+                    <label class="custom-control-label" for="customCheck${row.id}">${row.name}</label>
+                </div>`);
+            });
+
+        }, err => {
+            app.modalLoading(this.modal, 'hide');
+        });
+
+    }
+
+    this.applicationCanselSave = e => {
+
+        $(e).prop('disabled', true);
+        app.modalLoading(this.modal, 'show');
+
+        let data = this.modal.find('form').serializeArray();
+        data.push({name: 'id', value: this.data.application.id});
+
+        app.ajax(`/api/token${this.token}/service/applicationCanselSave`, data, json => {
+
+            if (json.error) {
+                app.modalLoading(this.modal, 'hide');
+                return app.globalAlert(json.error, json.done, json.code);
+            }
+
+            location.reload();
+
+        });
+
     }
 
     this.applicationDelete = e => {

@@ -53,7 +53,10 @@ Route::group([
         Route::match(['get','post'], '/applicationCombineOpen', 'Service\Application@applicationCombineOpen');
         /** Сохранение выбранной к присоединению мастер-заявки */
         Route::match(['get','post'], '/applicationCombine', 'Service\Application@applicationCombine');
-        
+        /** Список пунктов отмены заявки */
+        Route::match(['get','post'], '/getListCansel', 'Service\Application@getListCansel');
+        Route::match(['get','post'], '/applicationCanselSave', 'Service\Application@applicationCanselSave');
+
         /** Начало процесса завешения заявки */
         Route::match(['get','post'], '/doneApplicationStart', 'Service\Application@doneApplicationStart');
         /** Загрузка файла при завершении заявки */
@@ -137,10 +140,13 @@ Route::group([
         Route::match(['get','post'], '/getProjectsData', 'Admin\Projects@getProjectsData');
         /** Сохранение настроек данных заказчика */
         Route::match(['get','post'], '/saveSettingsProject', 'Admin\Projects@saveSettingsProject');
+        /** Заполнение данных пункта */
+        Route::match(['get','post'], '/getPointProjectsData', 'Admin\Projects@getPointProjectsData');
         /** Сохранение пункта неисправности */
         Route::match(['get','post'], '/savePointBreak', 'Admin\Projects@savePointBreak');
         /** Удаление возврат пункта неисправностей */
         Route::match(['get','post'], '/removeBreakPoint', 'Admin\Projects@removeBreakPoint');
+        Route::match(['get','post'], '/removeCanselPoint', 'Admin\Projects@removeCanselPoint');
         /** Сохранение пункта ремонта */
         Route::match(['get','post'], '/savePointRepair', 'Admin\Projects@savePointRepair');
         /** Удаление возврат пункта ремонта */

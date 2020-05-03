@@ -47,9 +47,11 @@
                 </button>
             </div>
             <form class="modal-body text-left">
+
+                <div id="cansel-points"></div>
                 
                 <div class="input-group">
-                    <textarea class="form-control" aria-label="Можно указать дополнительный комментарий..." placeholder="Можно указать дополнительный комментарий..." name="comment" rows="4" onkeyup="application.checkComment(this);"></textarea>
+                    <textarea class="form-control" aria-label="Наишите комментарий..." placeholder="Наишите комментарий..." name="comment" rows="4" onkeyup="application.checkComment(this);" name="comment"></textarea>
                 </div>
                 <small id="comment-count" class="form-text opacity-60">0/250 символов</small>
 
