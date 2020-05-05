@@ -599,7 +599,7 @@ function Montage() {
                 <a href="/montage${row.id}" target="_blanck">#${row.id}<i class="fas fa-external-link-alt ml-1"></i></a>
             </th>
             <td class="align-middle" data-th="Дата">${row.dateAdd}</td>
-            <td class="align-middle" data-th="Машина">${row.bus}</td>
+            <td class="align-middle" data-th="Машина"><i class="fas fa-bus fa-for-hover${row.busGarage ? '' : ' text-danger'} mr-1" onclick="montage.addBusData(this);" data-montage="${row.id}"></i><a href="/admin/bus?search=${row.busInt}" target="_search">${row.bus}</a></td>
             <td class="align-middle" data-th="Марка">${row.inputs.busName ? row.inputs.busName : ''}</td>
             <td class="align-middle" data-th="Гос. номер">${row.inputs.busNum ? row.inputs.busNum : ''}</td>
             <td class="align-middle" data-th="Филиал">${row.filial}</td>
@@ -666,6 +666,111 @@ function Montage() {
                 $(e).prop('disabled', false).find('i').removeClass('fas fa-spin fa-spinner').addClass('far fa-file-archive');
             }, 2000);
 
+        });
+
+    }
+
+    this.addBusData = e => {
+
+        $(e).removeClass('fa-bus').addClass('fa-spin fa-spinner').removeAttr('onclick');
+
+        app.modal = $('#modal-add-bus');
+
+        let data = {
+            id: $(e).data('montage'),
+            newBus: true,
+        };
+
+        app.ajax(`/api/token${app.token}/montage/getOneMontage`, data, json => {
+
+            if (json.error)
+                return app.globalAlert(json.error, json.done, json.code);
+
+            this.idMontage = data.id;
+
+            app.modal.modal('show');
+            $(e).addClass('fa-bus').removeClass('fa-spin fa-spinner').attr('onclick', 'montage.addBusData(this);');
+
+            app.modal.find('h5.modal-title').text('Добавить машину '+json.data.montage.bus)
+
+            app.modal.find('#client').html('<option selected value="">Для справки...</option>');
+            json.data.clients.forEach(row => {
+                app.modal.find('#client').append(`<option value="${row.id}">${row.name}</option>`);
+            });
+
+            app.modal.find('#garage').val(json.data.montage.bus);
+
+            this.checkSearchedBus(json.data.busGarage);
+
+            let input;
+            json.data.montage.inputs.forEach(row => {
+
+                input = false;
+
+                if (row.name == "busName")
+                    input = "#mark";
+                else if (row.name == "vinNum")
+                    input = "#vin";
+                else if (row.name == "busNum")
+                    input = "#number";
+
+                if (input)
+                    app.modal.find(input).val(row.value);
+
+            });
+
+        });
+
+    }
+
+    this.checkSearchedBus = data => {
+
+        app.modal.find('form .alert').remove();
+
+        let html = "", count = 0;
+        data.forEach(row => {
+
+            count++;
+
+            html += `<div class="my-1">
+                <span class="font-weight-bold">${count}.</span>
+                <span class="ml-2">${row.mark ? row.mark : ''}${row.model ? ` ${row.model}` : ``}</span>
+                ${row.name ? `<span class="font-weight-bold ml-2">${row.name}</span>` : ``}
+                <span class="ml-2">${row.number ? row.number : ''}</span>
+                <span class="ml-2">${row.vin ? row.vin : ''}</span>
+            </div>`;
+
+        });
+
+        if (count)
+            app.modal.find('form').prepend(`<div class="alert alert-info" style="font-size: 80%;">
+                <div class="font-weight-bold">Найдены совпадения по гаражному номеру:</div>
+                ${html}
+            </div>`);
+
+    }
+
+    this.idMontage = 0;
+
+    this.addNewBus = e => {
+
+        $(e).prop('disabled', true);
+        app.modalLoading(app.modal, 'show');
+
+        let data = app.modal.find('form').serializeArray();
+
+        app.ajax(`/api/token${app.token}/admin/addNewBus`, data, json => {
+
+            $(e).prop('disabled', false);
+            app.modalLoading(app.modal, 'hide');
+
+            $('#tr-montage-'+this.idMontage).find(`i[data-montage="${this.idMontage}"]`).removeClass('text-danger');
+
+            app.modal.modal('hide');
+
+        }, err => {
+            $(e).prop('disabled', false);
+            app.modalLoading(app.modal, 'hide');
         });
 
     }

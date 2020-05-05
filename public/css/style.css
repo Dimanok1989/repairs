@@ -216,6 +216,15 @@ button.close {
     cursor: pointer;
     opacity: .5;
 }
+.hover-main {
+    cursor: pointer;
+    opacity: .9;
+}
+a.hover-main {
+    text-decoration: none;
+    color: #ffffff;
+}
+.hover-main:hover,
 .fa-for-hover:hover {
     opacity: 1;
 }

@@ -1398,13 +1398,25 @@ function Admin() {
         });
 
     }
+    
     this.getRowBus = row => {
 
         return `<tr class="border-top">
-            <td class="py-1 px-2">${String(row.garage).replace(row.search, `<mark class="p-0" style="background: #fff2a4;">${row.search}</mark>`)}</td>
+            <td class="py-1 px-2">
+                <a href="/bus${row.id}" target="_blank">${String(row.garage).replace(row.search, `<mark class="p-0" style="background: #fff2a4;">${row.search}</mark>`)}</a>
+            </td>
             <td class="py-1 px-2">${String(row.name).replace(row.search, `<mark class="p-0" style="background: #fff2a4;">${row.search}</mark>`)}</td>
             <td class="py-1 px-2">${String(row.number).replace(row.search, `<mark class="p-0" style="background: #fff2a4;">${row.search}</mark>`)}</td>
             <td class="py-1 px-2">${String(row.vin).replace(row.search, `<mark class="p-0" style="background: #fff2a4;">${row.search}</mark>`)}</td>
+            <td class="py-1 px-2">${String(row.client).replace(row.search, `<mark class="p-0" style="background: #fff2a4;">${row.search}</mark>`)}</td>
+            <td class="py-1 px-2">
+                <div class="btn-group dropleft">
+                    <i class="fas fa-ellipsis-v fa-for-hover text-center" style="width: 20px;" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></i>
+                    <div class="dropdown-menu py-1 text-left">
+                        <button class="dropdown-item px-3" type="button"><i class="fas fa-pen mr-2"></i>Изменить</button>
+                    </div>
+                </div>
+            </td>
         </tr>`;
 
     }

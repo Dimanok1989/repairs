@@ -97,6 +97,7 @@ Route::group([
         Route::match(['get','post'], '/allMontagesList', 'Montage\Montage@allMontagesList');
         Route::match(['get','post'], '/excel', 'Montage\Files@excel');
         Route::match(['get','post'], '/zip', 'Montage\Files@zip');
+        Route::match(['get','post'], '/chartMontage', 'Montage\Montage@chartMontage');
     });
 
 
@@ -156,6 +157,8 @@ Route::group([
 
         /** Список всех машин */
         Route::match(['get','post'], '/getBusList', 'Garage\Garage@getBusList');
+        /** Создание новой машины */
+        Route::match(['get','post'], '/addNewBus', 'Garage\Garage@addNewBus');        
         
         /** Список оборудования */
         Route::match(['get','post'], '/getDeviceList', 'Garage\Device@getDeviceList');

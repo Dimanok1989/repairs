@@ -9,10 +9,15 @@
         @endif
     </button>
 
-    <a href="/" class="ml-1 btn btn-sm btn-dark align-middle rounded-circle2 fa-lg" title="Главная страница"><i class="fas fa-home"></i></a>
+    {{-- <a href="/" class="ml-1 btn btn-sm btn-dark align-middle rounded-circle2 fa-lg" title="Главная страница"><i class="fas fa-home"></i></a> --}}
+
+    <a href="/" class="mx-1 align-middle hover-main" title="Главная страница">
+        <img src="/favicon.ico" width="26" />
+    </a>
 
     @if ($__user->access->applications == 1 OR $__user->access->admin == 1)
-        <a href="/add" class="ml-1 btn btn-sm btn-dark align-middle rounded-circle2 fa-lg" title="Добавить заявку"><i class="fas fa-plus-square"></i></a>
+        <a href="/add" class="ml-1 btn btn-sm btn-dark align-middle fa-lg" title="Добавить заявку"><i class="fas fa-plus-square"></i></a>
+        {{-- <a href="/add" class="mx-1 align-middle hover-main" title="Добавить заявку"><i class="fas fa-plus-square fa-lg"></i></a> --}}
     @endif
 
     @if ($__user->access->application_comment == 1 OR $__user->access->applications_done == 1 OR $__user->access->admin == 1)

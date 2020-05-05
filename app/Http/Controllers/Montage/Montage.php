@@ -172,11 +172,18 @@ class Montage extends Main
         $favs = MontageModel::getFavoritUsersList($request);
         $fav = self::updateUserRowData($favs, true);
 
-        return parent::json([
+        $data = [
             'montage' => $montage,
             'fav' => $fav,
             'bus' => self::getListBusName(),
-        ]);
+        ];
+
+        if ($request->newBus) {
+            $data['clients'] = \App\Models\ProjectModel::getProjectsList();
+            $data['busGarage'] = \App\Models\GarageModel::getBusFromGarageNum($montage->bus);
+        }
+
+        return parent::json($data);
 
     }
 
@@ -782,6 +789,8 @@ class Montage extends Main
 
             $ids[] = $row->id; // Сбор идентификаторов монтажа
 
+            $row->busInt = (int) $row->bus; // Гаражный номер для
+
             // Сбор мдентификаторов каталогов
             if (!in_array($row->folderMain, $foldersId))
                 $foldersId[] = $row->folderMain;
@@ -883,6 +892,68 @@ class Montage extends Main
         $data = MontageModel::getAllCompletedMontagesFromPeriod($request);
 
         return self::getOneRowInAllMontage($data);
+
+    }
+
+    /**
+     * Вывод данных для графика
+     */
+    public static function chartMontage(Request $request) {
+
+        $request->offset = (int) $request->offset;
+        $request->offset = $request->offset > 0 ? $request->offset : 1;
+
+        $days = 21; // Количество дней в графике
+
+        $timestart = time() - (60 * 60 * 24 * ($days * $request->offset));
+        $timestop = $timestart + (60 * 60 * 24 * $days);
+
+        $request->start = date("Y-m-d", $timestart);
+        $request->stop = date("Y-m-d", $timestop);
+
+        $start = "";
+        $stop = "";
+
+        // Массив с каждой дактой
+        $dates = [];
+        for ($i = strtotime($request->start); $i <= strtotime($request->stop); $i += 86400) {
+
+            $date = date("Y-m-d", $i);
+            $datesRow = parent::createDate($date, true);
+
+            $start = $start != "" ? $start : $datesRow;
+            $stop = $datesRow;
+
+            $dates[$date] = [$datesRow, 0, 0];
+
+        }
+
+        // Данные всего монтажа
+        $montages = MontageModel::getAllDataForCharts($request);
+        foreach ($montages as $row)
+            if (isset($dates[$row->dates]))
+                $dates[$row->dates][1] += $row->count;
+
+        // Данные монтажа с участием пользвоателя
+        $mymontages = MontageModel::getMyDataForCharts($request);
+        foreach ($mymontages as $row)
+            if (isset($dates[$row->dates]))
+                $dates[$row->dates][2] += $row->count;
+
+        // Строки для графика
+        foreach ($dates as $row)
+            $rows[] = $row;
+
+        $count = (!count($montages) AND !count($mymontages)) ? false : true;
+
+        return parent::json([
+            'rows' => $rows,
+            'period' => $start . " - " . $stop,
+            'count' => $count,
+            'montages' => $montages,
+            'mymontages' => $mymontages,
+            'offset' => $request->offset,
+        ]);
 
     }
 

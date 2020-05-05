@@ -113,5 +113,8 @@ Route::get('/search', 'Pages@search')->name('search');
 /** Все комментарии */
 Route::get('/comments', 'Pages@comments')->name('comments');
 
+/** Страница машины */
+Route::get('/bus{id}', 'Pages@busShow')->name('busShow');
+
 /** Страница подачи заявок */
 Route::get('/{project}', 'Pages@addRequest')->name('addRequest');

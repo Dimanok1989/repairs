@@ -229,11 +229,25 @@ class Pages extends \App\Http\Controllers\Main
     }
 
     /**
-     * Страница с картинкой акта
+     * Страница с картинкой акта монтажа
      */
     public static function createJpegAct(Request $request) {
 
         return \App\Http\Controllers\Montage\Files::createJpegAct($request);
+
+    }
+
+    /**
+     * Страница машины
+     */
+    public static function busShow(Request $request) {
+
+        if (!$data = \App\Http\Controllers\Garage\Garage::getOneBusAllData($request))
+            return abort(404);
+
+        // dd($data);
+
+        return view('garage.bus', $data);
 
     }
 

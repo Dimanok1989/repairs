@@ -175,7 +175,7 @@ class Main
      * 
      * @return String|Bool
      */
-    public static function createDate($datetime) {
+    public static function createDate($datetime, $onlydate = false) {
 
         if (!$time = strtotime($datetime))
             return false;
@@ -183,19 +183,21 @@ class Main
         // Сверка даты
         $now = date('z');
         $before = date('z', $time);
+
+        $times = $onlydate ? "" : " в H:i";
     
         if ($now-$before == 0)
-            return date("сегодня в H:i", $time);
+            return date("сегодня{$times}", $time);
 
         if ($now-$before == 1)
-            return date("вчера в H:i", $time);
+            return date("вчера{$times}", $time);
 
         $month = self::dateToMonth($time, 2);
 
         if (date("Y") != date("Y", $time))
-            return date("d {$month} Y в H:i", $time);        
+            return date("d {$month} Y{$times}", $time);
 
-        return date("d {$month} в H:i", $time);
+        return date("d {$month}{$times}", $time);
 
     }
 

@@ -81,4 +81,87 @@ class Garage extends Main
 
     }
 
+    /**
+     * Создание новой машины
+     */
+    public static function addNewBus(Request $request) {
+
+        if (!parent::checkRight(['admin'], $request->__user))
+            return parent::error("Нет доступа к созданию новой машины", 2000);
+
+        $bus = $request->id ? GarageModel::find($request->id) : new GarageModel;
+
+        $bus->projectId = $request->client;
+        $bus->garage = $request->garage;
+        $bus->vin = $request->vin;
+        $bus->mark = $request->mark;
+        $bus->model = $request->model;
+        $bus->modif = $request->modif;
+        $bus->year = $request->year;
+        $bus->number = $request->number;
+
+        $bus->save();
+
+        // История изменений
+        $log = [
+            'idBus' => $bus->id,
+            'projectId' => $bus->garage,
+            'vin' => $bus->vin,
+            'mark' => $bus->mark,
+            'model' => $bus->model,
+            'modif' => $bus->modif,
+            'year' => $bus->year,
+            'number' => $bus->number,
+            'userId' => $request->__user->id,
+        ];
+
+        GarageModel::logBusData($log);
+
+        return parent::json([
+            'bus' => $bus,
+            'log' => $log,
+        ]);
+
+    }
+
+    /**
+     * Страница машины со всеми данными из всех разделов
+     */
+    public static function getOneBusAllData(Request $request) {
+
+        // Данные машины
+        $bus = GarageModel::find($request->id);
+
+        return self::serializeDataBus($bus);
+
+    }
+
+    public static function serializeDataBus($bus) {
+
+        // Все фотографии машины
+        $images = [];
+
+        // Приёмка машины
+        $inspections = [];
+
+        // Поиск заявок
+        $applications = [];
+
+        // Поиск сервиса по машине
+        $service = [];
+
+        // Поиск монтажа
+        $montages = [];
+
+        return [
+            'bus' => $bus,
+            'applications' => $applications,
+            'service' => $service,
+            'images' => $images,
+            'montages' => $montages,
+            'inspections' => $inspections,
+        ];
+
+    }
+
 }

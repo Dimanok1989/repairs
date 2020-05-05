@@ -37,6 +37,8 @@
                 <th scope="col" class="border-0">Мака, модель</th>
                 <th scope="col" class="border-0">Гос. номер</th>
                 <th scope="col" class="border-0">VIN</th>
+                <th scope="col" class="border-0">Заказчик</th>
+                <th scope="col" class="border-0"></th>
             </tr>
         </thead>
         <tbody id="rows-data"></tbody>

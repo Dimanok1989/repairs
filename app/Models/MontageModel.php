@@ -340,11 +340,39 @@ class MontageModel extends Model
             'users.lastname',
             'users.fathername',
             'montage_folders.name as place',
-            'montage_folders.main as folderMain'
+            'montage_folders.main as folderMain',
+            'bus.garage as busGarage'
         )
         ->leftjoin('users', 'users.id', '=', 'montage.user')
         ->leftjoin('montage_folders', 'montage_folders.id', '=', 'montage.folder')
+        ->leftjoin('bus', 'bus.garage', '=', 'montage.bus')
         ->orderBy('montage.date', 'DESC')->paginate(50);
+
+    }
+
+    /**
+     * Спиоск всего монтажа для графика
+     */
+    public static function getAllDataForCharts($request) {
+
+        return DB::table('montage')
+        ->select(DB::raw('DATE(date) as dates'), DB::raw('count(*) as count'))
+        ->whereBetween('date', [$request->start, $request->stop])
+        ->groupBy('dates')
+        ->get();
+
+    }
+    public static function getMyDataForCharts($request) {
+
+        return DB::table('montage_users')
+        ->select(DB::raw('DATE(montage_users.date) as dates'), DB::raw('count(*) as count'))
+        ->join('montage', 'montage.id', '=', 'montage_users.montageId')
+        ->where([
+            ['montage_users.userId', $request->__user->id],
+        ])
+        ->whereBetween('montage_users.date', [$request->start, $request->stop])
+        ->groupBy('dates')
+        ->get();
 
     }
 

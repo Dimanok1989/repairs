@@ -629,5 +629,79 @@ function App() {
 
     }
 
+    this.chartData = [];
+    this.chartStep = 1;
+
+    this.chartMontageChange = e => {
+
+        this.chartMontage(e);
+
+    }
+
+    this.chartMontage = (e = false) => {
+
+        this.chartData = [];
+
+        if (e) {
+            $(e).removeAttr('onclick');
+            let step = +$(e).data('step');
+            this.chartStep = this.chartStep + step;
+        }
+
+        let data = {
+            offset: this.chartStep,
+        }
+
+        $('#chart_montage').html(`<div class="d-flex justify-content-center align-items-center looooo">
+            <div class="spinner-border" role="status"></div>
+        </div>`);
+
+        app.ajax(`/api/token${app.token}/montage/chartMontage`, data, json => {
+
+            this.chartStep = json.data.offset;
+
+            if (e)
+                $(e).attr('onclick', 'app.chartMontageChange(this);');
+
+            if (!json.data.count) {
+                return $('#chart_montage').html(`<div class="d-flex justify-content-center align-items-center looooo">
+                    <div class="opacity-40">
+                        <div class="font-weight-bold">${json.data.period}</div>
+                        <div>Данных нет</div>
+                    </div>
+                </div>`);
+            }
+
+            google.charts.load('current', {packages: ['bar']});
+            google.charts.setOnLoadCallback(this.drawChartMontage);
+
+            this.chartData.push(['', 'За день', 'Ваш монтаж']);
+
+            json.data.rows.forEach(row => {
+                this.chartData.push(row);
+            });
+
+        });
+
+    }
+
+    this.drawChartMontage = () => {
+
+        var data = google.visualization.arrayToDataTable(this.chartData);
+        var options = {
+            chart: {
+              // title: 'Company Performance',
+              // subtitle: 'Sales, Expenses, and Profit: 2014-2017',
+            },
+            legend: {
+                position: 'none',
+            }
+        };
+  
+        var chart = new google.charts.Bar(document.getElementById('chart_montage'));
+        chart.draw(data, google.charts.Bar.convertOptions(options));
+
+    }
+
 }
 const app = new App;
