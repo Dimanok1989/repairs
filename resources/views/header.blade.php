@@ -12,7 +12,7 @@
     {{-- <a href="/" class="ml-1 btn btn-sm btn-dark align-middle rounded-circle2 fa-lg" title="Главная страница"><i class="fas fa-home"></i></a> --}}
 
     <a href="/" class="mx-1 align-middle hover-main" title="Главная страница">
-        <img src="/favicon.ico" width="26" />
+        <img src="/favicon.ico?{{ config('app.version') }}" width="26" />
     </a>
 
     @if ($__user->access->applications == 1 OR $__user->access->admin == 1)
@@ -65,7 +65,7 @@
             @endif  
 
             @if ($__user->access->inspection == 1 OR $__user->access->admin == 1)
-                <a href="/inspection" class="list-group-item py-1 list-group-item-action disabled"><i class="fas fa-clipboard-list mr-1"></i>Приёмка</a>
+                <a href="/inspection" class="list-group-item py-1 list-group-item-action{{ strripos(url()->current(), "ru/inspection") ? " active" : "" }}"><i class="fas fa-clipboard-list mr-1"></i>Приёмка</a>
             @endif
 
             @if ($__user->access->montage == 1 OR $__user->access->admin == 1)

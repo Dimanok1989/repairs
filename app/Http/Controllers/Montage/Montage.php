@@ -919,7 +919,7 @@ class Montage extends Main
         for ($i = strtotime($request->start); $i <= strtotime($request->stop); $i += 86400) {
 
             $date = date("Y-m-d", $i);
-            $datesRow = parent::createDate($date, true);
+            $datesRow = parent::createDate($date, true, true);
 
             $start = $start != "" ? $start : $datesRow;
             $stop = $datesRow;

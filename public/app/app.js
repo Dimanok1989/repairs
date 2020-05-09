@@ -278,7 +278,7 @@ function App() {
         }
 
         if (code)
-            title += ' '+code;
+            title += ' <span class="opacity-30">'+code+'</span>';
 
         $('#global-alert').remove();
 

@@ -34,38 +34,15 @@
     @if ($__user->access->montage == 1 OR $__user->access->admin == 1)
     <div class="my-4 position-relative">
         <h4>
-            <i class="fas fa-chevron-left fa-for-hover" onclick="app.chartMontageChange(this);" data-step="1"></i>
-            <span class="mx-3">Монтаж</span>
-            <i class="fas fa-chevron-right fa-for-hover" onclick="app.chartMontageChange(this);" data-step="-1"></i>
+            <i class="fas fa-angle-left fa-for-hover" onclick="app.chartMontageChange(this);" data-step="1"></i>
+            <a href="{{ route('montage') }}" class="mx-3">Монтаж</a>
+            <i class="fas fa-angle-right fa-for-hover" onclick="app.chartMontageChange(this);" data-step="-1"></i>
         </h4>
         <div class="mt-2 card p-3" id="chart_montage" style="height: 234px;"></div>
     </div>
     @endif
 
 </div>
-
-{{-- @forelse($applications as $application)
-<div class="mt-4 mb-3 mx-auto" style="max-width: 600px;">
-    <div class="d-flex justify-content-center align-items-center">
-        <div class="font-weight-bold">{{ $application->name }}</div>
-        <div class="badge badge-primary ml-2">{{ $application->counts }}</div>
-    </div>
-
-    <ul class="list-group mt-2">
-    @foreach($application->projects as $key => $project)
-        <a href="{{ route('applicatioslist') }}{{ $application->id }}?project={{ $key }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-            <span>{{ $project }}</span>
-            <span class="badge badge-primary badge-pill">{{ $application->applications[$key] ?? 0 }}</span>
-        </a>      
-    @endforeach
-    </ul>
-
-</div>
-@empty
-<div class="mt-4 mb-3 mx-auto" style="max-width: 600px;">
-    <h3>Активных заказчиков не найдено</h3>
-</div>
-@endforelse --}}
 
 @endsection
 

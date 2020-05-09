@@ -29,6 +29,20 @@ class Projects extends Main
 
     }
 
+    public static function getClientsListForUser($ids = []) {
+
+        $clients = [];
+        foreach(ProjectModel::getProjectsListForUser($ids) as $row) {
+            $clients[] = [
+                'id' => $row->id,
+                'name' => $row->name,
+            ];
+        }
+
+        return $clients;
+
+    }
+
     public static function emodjiproect($id) {
 
         switch ($id) {

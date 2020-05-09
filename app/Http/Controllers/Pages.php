@@ -251,4 +251,30 @@ class Pages extends \App\Http\Controllers\Main
 
     }
 
+    /**
+     * Страница приёмки
+     */
+    public static function inspection(Request $request) {
+
+        if (!$user = Session::get('user'))
+            return redirect("/");
+
+        if (!parent::checkRight(['admin','montage']))
+            return abort(404);
+
+        if ($request->inspection) {
+
+            if (!$inspect = \App\Models\Inspections::find($request->inspection))
+                return abort(404);
+
+            return view('inspection.inspect', [
+                'inspection' => $inspect,
+            ]);
+            
+        }
+
+        return view('inspection.main');
+
+    }
+
 }

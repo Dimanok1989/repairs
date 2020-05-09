@@ -110,7 +110,7 @@ class ProjectModel
      */
     public static function getProjectsListForUser($id = []) {
 
-        return DB::table('projects')->whereIn('id', $id)->get();
+        return DB::table('projects')->whereIn('id', $id)->orderBy('name')->get();
 
     }
 

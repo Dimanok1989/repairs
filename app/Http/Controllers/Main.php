@@ -15,7 +15,7 @@ class Main
      * 
      * @return JSON
      */
-    public static function json($arr) {
+    public static function json($arr = []) {
 
         $json = [
             'done' => 'success',
@@ -175,7 +175,7 @@ class Main
      * 
      * @return String|Bool
      */
-    public static function createDate($datetime, $onlydate = false) {
+    public static function createDate($datetime, $onlydate = false, $notoday = false) {
 
         if (!$time = strtotime($datetime))
             return false;
@@ -186,10 +186,10 @@ class Main
 
         $times = $onlydate ? "" : " в H:i";
     
-        if ($now-$before == 0)
+        if ($now-$before == 0 AND !$notoday)
             return date("сегодня{$times}", $time);
 
-        if ($now-$before == 1)
+        if ($now-$before == 1 AND !$notoday)
             return date("вчера{$times}", $time);
 
         $month = self::dateToMonth($time, 2);

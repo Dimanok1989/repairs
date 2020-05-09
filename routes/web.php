@@ -86,6 +86,12 @@ Route::group(['prefix' => 'montage'], function () {
 });
 Route::get('/montage{id}', 'Pages@montage')->name('montagePage');
 
+/** Страницы приёмки */
+Route::group(['prefix' => 'inspection'], function () {
+    Route::get('/', 'Pages@inspection')->name('inspection');
+    Route::get('/{inspection}', 'Pages@inspection')->name('inspectionRow');
+});
+
 
 /** Личный кабинет */
 Route::group(['prefix' => 'user'], function () {

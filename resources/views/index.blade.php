@@ -36,6 +36,7 @@
         <script src="/app/app-application.js?{{ config('app.version') }}"></script>
         <script src="/app/app-service.js?{{ config('app.version') }}"></script>
         <script src="/app/app-montage.js?{{ config('app.version') }}"></script>
+        <script src="/app/app-inspection.js?{{ config('app.version') }}"></script>
         @yield('script')
         <script>
             $(() => {

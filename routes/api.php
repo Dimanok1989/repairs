@@ -100,6 +100,17 @@ Route::group([
         Route::match(['get','post'], '/chartMontage', 'Montage\Montage@chartMontage');
     });
 
+    Route::group(['prefix' => 'inspection'], function () {
+        Route::match(['get','post'], '/startData', 'Inspection\Inspection@startData');
+        Route::match(['get','post'], '/start', 'Inspection\Inspection@start');
+        Route::match(['get','post'], '/open', 'Inspection\Inspection@open');
+        Route::match(['get','post'], '/deviceForm', 'Inspection\Inspection@deviceForm');
+        Route::match(['get','post'], '/save', 'Inspection\Inspection@save');
+        Route::match(['get','post'], '/done', 'Inspection\Inspection@done');
+        Route::match(['get','post'], '/tape', 'Inspection\Inspection@tape');
+        Route::match(['get','post'], '/checkUpdateTable', 'Inspection\Inspection@checkUpdateTable');
+        Route::match(['get','post'], '/changeBusData', 'Inspection\Inspection@changeBusData');
+    });
 
     /** Админ панель */
     Route::group(['prefix' => 'admin'], function () {
