@@ -429,7 +429,7 @@ class Inspection extends Main
 
         $data->lastTime = time();
 
-        $tape = Inspections::getRowInspectionsForTable();
+        $tape = Inspections::getRowInspectionsForTable($request);
         $data->inspections = self::inspectionRows($tape);
 
         $data->last = $tape->lastPage(); // Всего страниц
@@ -471,10 +471,12 @@ class Inspection extends Main
         if (!$date = date("Y-m-d H:i:s", $request->lastTime))
             return parent::error("Не определено время проверки", 3006);
 
+        $request->date = $date;
+
         $data = (Object) []; // Объект на вывод
         $data->lastTime = time();
 
-        $tape = Inspections::getRowInspectionsForTable($date);
+        $tape = Inspections::getRowInspectionsForTable($request);
         $data->inspections = self::inspectionRows($tape);
 
         return parent::json($data);

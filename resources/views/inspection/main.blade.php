@@ -16,10 +16,10 @@
     <table class="table table-sm mt-4 table-adaptive" id="content-table">
         <thead class="thead-dark">
             <tr>
-                <th scope="col">#</th>
+                <th scope="col"></th>
+                <th scope="col">Заказчик</th>
                 <th scope="col">Дата</th>
                 <th scope="col">Машина</th>
-                <th scope="col">Заказчик</th>
                 <th scope="col">ФИО</th>
                 <th scope="col"></th>
             </tr>

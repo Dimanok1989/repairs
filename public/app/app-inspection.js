@@ -21,15 +21,22 @@ function Inspection() {
                 return;
             }
 
+            json.data.inspections.forEach(row => {
+                this.echoRowTable(row);
+            });
+
             if (json.data.next > json.data.last)
                 app.progressEnd = true;
 
             app.page = json.data.next;
             this.lastTime = json.data.lastTime;
 
-            json.data.inspections.forEach(row => {
-                this.echoRowTable(row);
-            });
+            let colspan = $('#content-table thead tr th').length;
+
+            if (json.data.inspections.length == 0 && json.data.next == 2)
+                $('#all-table-rows').append(`<tr id="no-data-tr-table"><td class="py-2 opacity-60" colspan="${colspan}">Данных ещё нет</div>`);
+            else if (json.data.next > json.data.last)
+                $('#all-table-rows').append(`<tr><td class="py-2 opacity-60" colspan="${colspan}">Это все данные</div>`);
 
         });
 
@@ -55,6 +62,9 @@ function Inspection() {
                 this.echoRowTable(row, true);
             });
 
+            if (json.data.inspections.length)
+                $('#all-table-rows #no-data-tr-table').remove();
+
         });
 
     }
@@ -64,16 +74,13 @@ function Inspection() {
         let html = this.getHtmlTableRow(row);
 
         if ($('#table-row-'+row.id).length) {
-
             $('#table-row-'+row.id).replaceWith(html);
             $('#table-row-'+row.id).css('opacity', '.2').animate({opacity: 1}, 300);
-
             return;
-
         }
 
         if (prepend)
-            $('#all-table-rows').prepend(html);
+            return $('#all-table-rows').prepend(html);
 
         $('#all-table-rows').append(html);
 
@@ -87,12 +94,12 @@ function Inspection() {
             color = "table-success";
 
         return `<tr class="align-self-center ${color}" id="table-row-${row.id}">
-            <th class="align-middle" scope="col" data-th="Монтаж">${row.id}</th>
-            <td class="align-middle" data-th="Дата">${row.dateAdd}</td>
-            <td class="align-middle" data-th="Машина">${row.busGarage}</td>
+            <th class="align-middle" scope="col" data-th="Приёмка">#${row.id}</th>
             <td class="align-middle" data-th="Заказчик">${row.clientName ? row.clientName : ''}</td>
-            <td class="align-middle" data-th="Завершил">${row.fio}</td>
-            <td class="align-middle" data-th="Страница монтажа">
+            <td class="align-middle" data-th="Дата">${row.dateAdd}</td>
+            <td class="align-middle" data-th="Машина">${row.busMark ? row.busMark+' ' : ''}${row.busModel ? row.busModel+' ' : ''}<i>${row.busGarage}</i></td>
+            <td class="align-middle" data-th="ФИО">${row.fio}</td>
+            <td class="align-middle">
                 <a class="btn btn-link p-0" href="/inspection/${row.id}" role="button">
                     <span class="table-adaptive-minim mr-2">Перейти</span>
                     <i class="fas fa-external-link-alt"></i>

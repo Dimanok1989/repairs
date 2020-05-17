@@ -27,9 +27,7 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <form class="modal-body text-left pb-0">
-
-            </form>
+            <form class="modal-body text-left pb-0"></form>
             <div class="modal-footer">
                 <button type="button" class="btn btn-success" id="data-save" onclick="inspection.save(this);">Сохранить</button>
             </div>

@@ -27,7 +27,7 @@ class Inspections extends Model
 
     }
 
-    public static function getRowInspectionsForTable($date = false) {
+    public static function getRowInspectionsForTable($request) {
 
         $data = DB::table('inspections')
         ->select(
@@ -39,10 +39,14 @@ class Inspections extends Model
         )
         ->leftjoin('projects', 'projects.id', '=', 'inspections.client')
         ->leftjoin('users', 'users.id', '=', 'inspections.userId')
-        ->orderBy('inspections.id', 'DESC');
+        ->orderBy('inspections.id', 'DESC')
+        ->where(function ($query) use ($request) {
+            $query->whereIn('inspections.client', $request->__user->clientsAccess)
+            ->orWhere('inspections.client', NULL);
+        });
 
-        if ($date)
-            return $data->where('updated_at', '>=', $date)->get();
+        if ($request->date)
+            return $data->where('updated_at', '>=', $request->date)->get();
         
         return $data->paginate(50);
 

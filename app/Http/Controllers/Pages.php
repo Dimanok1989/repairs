@@ -259,12 +259,15 @@ class Pages extends \App\Http\Controllers\Main
         if (!$user = Session::get('user'))
             return redirect("/");
 
-        if (!parent::checkRight(['admin','montage']))
+        if (!parent::checkRight(['admin','inspection']))
             return abort(404);
 
         if ($request->inspection) {
 
             if (!$inspect = \App\Models\Inspections::find($request->inspection))
+                return abort(404);
+
+            if (!$inspect->done AND !parent::checkRight(['admin']) AND !in_array($inspect->client, $user->clientsAccess) AND $inspect->client)
                 return abort(404);
 
             return view('inspection.inspect', [
