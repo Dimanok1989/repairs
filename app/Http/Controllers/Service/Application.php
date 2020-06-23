@@ -13,6 +13,7 @@ use App\Http\Controllers\Service\Service;
 
 use App\Models\ApplicationModel;
 use App\Models\ProjectModel;
+use App\Models\Devices;
 
 
 class Application extends Main
@@ -368,6 +369,9 @@ class Application extends Main
         // Проверка доступа к удаленным заявкам
         if ($application->del AND !parent::checkRight(['admin','application_del'], $user))
             return parent::error("Заявка удалена", 2002);
+
+        // ФИО сотрудника, добавившего заявку
+        $application->userAddFio = parent::getUserFioAll($application, 1);
 
         // Полные данные заявки
         $application = self::getApplicationsListEditRow([$application])[0];
@@ -877,6 +881,7 @@ class Application extends Main
 
         $tempdata = [];
 
+        // Првоерка введенных серийных номеров
         if (is_array($request->serials)) {
 
             $tempdata = [
@@ -919,6 +924,12 @@ class Application extends Main
         if (count($checkSerial))
             return parent::error("Введите серийные номера", 4008, $checkSerial);
 
+        // Проверка введенных наименований устройств
+        $devicesName = self::checkSelectedDevicesName($request);
+
+        if (isset($devicesName['errors']))
+            return parent::error("Выберите или введите наименование устройства", 4009, $devicesName['errors']);
+
         // Данные для записи завершения заявки
         $data = [
             'applicationId' => $id,
@@ -926,6 +937,7 @@ class Application extends Main
             'subUserId' => $request->useradd ? implode(",", $request->useradd) : null,
             'repairs' => $request->repairs ? implode(",", $request->repairs) : null,
             'subrepairs' => $request->subrepairs ? implode(",", $request->subrepairs) : null,
+            'devices' => $devicesName ? json_encode($devicesName) : null,
             'files' => json_encode($photo),
             'comment' => $request->comment,
             'changefond' => $request->thisfonddone ? 1 : 0,
@@ -1078,6 +1090,65 @@ class Application extends Main
         return parent::json([
             'users' => $users,
         ]);
+
+    }
+
+    /**
+     * Метод обработки выбранных устройств
+     */
+    public static function checkSelectedDevicesName($request) {
+
+        // Првоерка переданных идентификаторов
+        if (is_array($request->devices)) {
+
+            $errors = []; // Массив с ошибками
+            $data = []; // Массив с данными
+
+            // Обработка каждого выбранного устройства
+            foreach ($request->devices as $row) {
+
+                $arr = explode("_", $row); // Преобразование строки в массив
+
+                $name = "selDeviceName_{$arr[1]}_{$arr[2]}"; // Значение выбранного пункта
+                $add = "selDeviceNameAdd_{$arr[1]}_{$arr[2]}"; // Значение наименования нового устрйоства
+
+                $type = $arr[1] == "repairs" ? "r_" : "s_";
+                $type .= $arr[2];
+
+                $nameVal = (int) $request->$name;
+
+                // Првоерка данных
+                if (!$request->$name OR $request->$name == "")
+                    $errors[] = $name;
+                elseif ($request->$name == "add" AND (!$request->$add OR $request->$add == ""))
+                    $errors[] = $add;
+                elseif ($request->$name == "add") {
+
+                    $deviceData = Devices::where('name', $request->$add)->limit(1)->get();
+                    $device = count($deviceData) ? $deviceData[0] : new Devices;
+
+                    $device->name = $request->$add;
+                    $device->groupId = $arr[3];
+                
+                    $device->save();
+
+                    if (!isset($data[$type]))
+                        $data[$type] = $device->id;
+
+                }
+                elseif (!isset($data[$type]))
+                    $data[$type] = $nameVal;
+
+            }
+
+            if (count($errors))
+                return ['errors' => $errors];
+
+            return $data;
+
+        }
+
+        return null;
 
     }
 

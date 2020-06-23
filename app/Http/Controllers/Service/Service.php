@@ -50,6 +50,7 @@ class Service extends Main
         $subrepairs = []; // Список подпунктов выполненных работ
         $cansel = []; // Список пунктов отмены заявки
         $appids = []; // Идентификаторы заявок
+        $devices = []; // Список наименований устройств
 
         foreach ($rows as $row) {
 
@@ -129,6 +130,13 @@ class Service extends Main
             $row->act = parent::checkRight(['admin','application_act_edit']);
             $row->actDwn = parent::checkRight(['admin','application_act_download']);
 
+            // Поиск устройств
+            $row->devicesName = [];
+            if ($row->devices = json_decode($row->devices, true))
+                foreach ($row->devices as $device)
+                    if (!in_array($device, $devices))
+                        $devices[] = $device;
+
             $temp[] = $row;
 
         }
@@ -181,6 +189,12 @@ class Service extends Main
 
         }
 
+        // Получение данных устройств по сервису
+        $devicesdata = [];
+        if (count($devices))
+            foreach (\App\Models\Devices::whereIn('id', $devices)->get() as $device)
+                $devicesdata[$device->id] = $device->name;
+
 
         foreach ($temp as $row) {
 
@@ -225,6 +239,12 @@ class Service extends Main
                     $repairs[] = $canselsdata[$point]->name;
 
             $row->repairsList = implode("; ", $repairs);
+
+            // Наименование устройств
+            if ($row->devices)
+                foreach ($row->devices as $key => $device)
+                    if (isset($devicesdata[$device]))
+                        $row->devicesName[$key] = $devicesdata[$device];
 
             // Добавление информации о заявке
             $row->applicationData = $applicationsdata[$row->applicationId] ?? [];
@@ -523,10 +543,14 @@ class Service extends Main
 
         // Сбор пунктов и подпунктов ремонта
         $service->repairsData = [];
-        foreach (ServiceModel::getRepairList($service->repairs) as $row)
+        foreach (ServiceModel::getRepairList($service->repairs) as $row) {
+            $row->rep = "r";
             $service->repairsData[] = $row;
-        foreach (ServiceModel::getRepairList($service->subrepairs, true) as $row)
+        }
+        foreach (ServiceModel::getRepairList($service->subrepairs, true) as $row) {
+            $row->rep = "s";
             $service->repairsData[] = $row;
+        }
 
         // Таблица с оборудованием
         $tables = [];
@@ -538,7 +562,7 @@ class Service extends Main
 
                 $add = [
                     'n' => $count,
-                    't' => "",
+                    't' => $service->devicesName[$row->rep . "_" . $row->id] ?? "",
                     's' => $row->device ?? "",
                 ];
                 
@@ -630,6 +654,8 @@ class Service extends Main
 
         // Создание акта из шаблона
         $data['link'] = ServiceFiles::createActService($value, $tables);
+
+        $data['data'] = $service;
 
         return parent::json($data);
 

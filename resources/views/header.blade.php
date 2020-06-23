@@ -2,6 +2,8 @@
 
 <div class="bg-dark text-light px-3 py-3 fixed-top">
 
+    <div class="mx-auto" style="max-width: 1300px;">
+
     <button class="btn btn-sm btn-dark align-middle rounded-circle2 fa-lg position-relative" onclick="app.openMenu();" id="header-open-menu">
         <i class="fas fa-bars"></i>
         @if ($__user->newData->services > 0)
@@ -41,6 +43,8 @@
         <a href="/login" class="btn btn-sm btn-dark align-middle rounded-circle float-right" title="Авторизация"><i class="fas fa-sign-in-alt"></i></a>
 
     @endif --}}
+
+    </div>
 
 </div>
 

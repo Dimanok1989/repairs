@@ -30,6 +30,9 @@ Route::match(['get','post'], '/getOneApplicationData', 'Service\Application@getO
 /** Удаление файла */
 Route::match(['get','post'], '/deleteFile', 'Service\Application@deleteFile');
 
+// Маршрут для формирование файла по актам
+Route::match(['get','post'], '/montageParceActs', 'Montage\MontageActs@start');
+
 
 /** Запросы авторизированных пользователей */
 Route::group([
@@ -81,6 +84,9 @@ Route::group([
         Route::match(['get','post'], '/actSaveData', 'Service\Service@actSaveData');
         Route::match(['get','post'], '/actDownload', 'Service\Service@actDownload');
 
+        /** Список устройств по группе */
+        Route::match(['get','post'], '/getListDeviceGroup', 'Garage\Device@getListDeviceGroup');
+
     });
 
 
@@ -96,6 +102,7 @@ Route::group([
         Route::match(['get','post'], '/sendComment', 'Montage\Montage@sendComment');
         Route::match(['get','post'], '/allMontagesList', 'Montage\Montage@allMontagesList');
         Route::match(['get','post'], '/excel', 'Montage\Files@excel');
+        Route::match(['get','post'], '/docx', 'Montage\MontageActs@start');
         Route::match(['get','post'], '/zip', 'Montage\Files@zip');
         Route::match(['get','post'], '/chartMontage', 'Montage\Montage@chartMontage');
     });

@@ -8,6 +8,8 @@ use Illuminate\Http\Request;
 use App\Models\Devices;
 use App\Models\DevicesGroup;
 
+use DB;
+
 class Device extends Main
 {
     
@@ -57,6 +59,35 @@ class Device extends Main
         return parent::json([
             'device' => $device,
         ]);
+
+    }
+
+    /**
+     * Метод вывода списка устройств из группы
+     */
+    public static function getListDeviceGroup(Request $request) {
+
+        $device = self::getListDeviceGroupData($request);
+
+        return parent::json([
+            'devices' => $device,
+        ]);
+
+    }
+    
+    public static function getListDeviceGroupData(Request $request) {
+
+        if ($request->type != "repairs" AND $request->type != "subrepairs")
+            return [];
+
+        $id = (int) $request->val;
+
+        if (!$id)
+            return [];
+
+        $group = (int) $request->deviceGroup;
+
+        return Devices::where('groupId', $group)->orderBy('name')->get();
 
     }
 

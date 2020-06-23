@@ -12,7 +12,8 @@
   		<input type="date" class="form-control" value="{{ date("Y-m-01", time()-60*60*24*3) }}" id="start-excel">
   		<input type="date" class="form-control" value="{{ date("Y-m-t", time()-60*60*24*3) }}" id="stop-excel">
   		<div class="input-group-append">
-			<button class="btn btn-outline-secondary" type="button" id="download-exel" onclick="montage.excel(this);"><i class="fas fa-file-excel" aria-hidden="true"></i></button>
+			<button class="btn btn-outline-secondary" type="button" id="download-exel" onclick="montage.excel(this);" title="Скачать отчет за период в excel"><i class="fas fa-file-excel" aria-hidden="true"></i></button>
+            <button class="btn btn-outline-secondary" type="button" id="download-word-acts" onclick="montage.docx(this);" title="Скачать все акты за период"><i class="fas fa-file-word" aria-hidden="true"></i></button>
   		</div>
 	</div>
 </div>

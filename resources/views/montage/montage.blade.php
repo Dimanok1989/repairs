@@ -8,6 +8,18 @@
     <p class="font-weight-bold"><i class="fas fa-bus mr-2"></i>{{ $montage->bus }}</p>
 
     <form class="mx-auto position-relative" style="max-width: 500px;" id="data-montage">
+
+        <div class="input-group input-group-sm px-2">
+			<div class="input-group-prepend">
+                <span class="input-group-text">
+                    <i class="fas fa-bus"></i>
+                </span>
+			</div>
+ 			<input type="text" class="form-control for-changed" placeholder="Дполнительный гаражный номер" name="subBus" onchange="montage.changeInput(this);">
+		</div>
+        <div class="px-2 mb-3">
+            <small class="form-text text-muted text-left mt-0">Укажите дополнительный гаражный номер, если имеется</small>
+        </div>
         
         <div id="search-users-block">
             <div class="font-weight-bold mb-2">Добавьте коллегу</div>

@@ -98,8 +98,12 @@ class ApplicationModel
             'projects.login as clientLogin',
             'projects.name as clientName',
             'projects.telegram',
-            'projects.bottoken'
+            'projects.bottoken',
+            'users.firstname',
+            'users.lastname',
+            'users.fathername'
         )
+        ->leftjoin('users', 'applications.userId', '=', 'users.id')
         ->join('projects', 'projects.id', '=', 'applications.clientId');
 
         if (is_array($id))

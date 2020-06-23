@@ -26,9 +26,14 @@
   	    </div>
 
         <div class="input-group mt-2">
-		    <input type="text" class="form-control" name="bus" id="bus-number" placeholder="Гаражный номер" autocomplete="false" required>
+		    <input type="text" class="form-control" name="bus" id="bus-number" placeholder="Гаражный номер*" autocomplete="false" required>
         </div>
         <small class="form-text text-muted text-left">Укажите гаражный номер машины в формате 010100</small>
+
+        <div class="input-group mt-2">
+		    <input type="text" class="form-control" name="subBus" id="bus-sub-number" placeholder="Дополнительный номер" autocomplete="false">
+        </div>
+        <small class="form-text text-muted text-left">Укажите дополнительный гаражный номер, если есть</small>
 
         <button class="btn btn-outline-primary mt-3" type="button" id="start-button" onclick="montage.start(this);">Начать</button>
 

@@ -413,4 +413,21 @@ class MontageModel extends Model
 
     }
 
+    public static function getFilialName($id) {
+
+        return DB::table('montage_folders')->where('id', $id)->limit(1)->get();
+
+    }
+
+    public static function saveSubBus($id, $num = null) {
+
+        return DB::table('montage')
+        ->where('id', $id)
+        ->limit(1)
+        ->update([
+            'subBus' => $num,
+        ]);
+
+    }
+
 }

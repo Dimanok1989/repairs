@@ -94,10 +94,15 @@ function Admin() {
 
     }
 
-    this.userData = function(e) {
+    this.userData = function(e, newuser = false) {
 
         let id = $(e).data('id') ?? false;
         let data = {};
+
+        if (newuser) {
+            id = false;
+            $('#modal-user #save-user-data').data('id', id);
+        }
 
         if (id)
             data.id = id;

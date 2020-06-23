@@ -140,6 +140,8 @@ function Montage() {
 
             });
 
+            $(`#data-montage [name="subBus"]`).val(json.data.montage.subBus);
+
             this.getHtmlAllFiles(json.data.montage.files);
 
             // Ссылка на автоматический акт
@@ -610,9 +612,10 @@ function Montage() {
             </td>
             <td class="align-middle">
                 <div class="btn-group btn-group-sm" role="group">
+                    ${row.completed ? `
                     <button type="button" class="btn btn-warning" target="_blanck" title="Скачать архив с файлами" onclick="montage.zip(this);" data-id="${row.id}">
                         <i class="far fa-file-archive" style="width: 14px;"></i>
-                    </button>
+                    </button>` : ``}
                     <!--<a class="btn btn-primary" target="_blanck" href="/montage${row.id}" role="button" title="Перейти на страницу монтажа" data-toggle="tooltip">
                         <i class="fas fa-external-link-alt"></i>
                     </a>-->
@@ -645,6 +648,37 @@ function Montage() {
                 $('#start-excel, #stop-excel').prop('disabled', false);
             }, 2000);
 
+        }, err => {
+            $(e).prop('disabled', false).find('i').removeClass('fa-spin fa-spinner').addClass('fa-file-excel');
+        });
+
+    }
+
+    this.docx = e => {
+
+        let data = {
+            start: $('#start-excel').val(),
+            stop: $('#stop-excel').val(),
+        };
+
+        $(e).prop('disabled', true).find('i').removeClass('fa-file-word').addClass('fa-spin fa-spinner');
+        $('#start-excel, #stop-excel').prop('disabled', true);
+
+        app.ajax(`/api/token${app.token}/montage/docx`, data, json => {
+
+            if (json.error)
+                return app.globalAlert(json.error, json.done, json.code);
+
+            app.globalAlert("Файл сформирован, сейчас начнётся его скачивание", json.done);
+            location.href = json.data.link;
+            
+            setTimeout(function() {
+                $(e).prop('disabled', false).find('i').removeClass('fa-spin fa-spinner').addClass('fa-file-word');
+                $('#start-excel, #stop-excel').prop('disabled', false);
+            }, 2000);
+
+        }, err => {
+            $(e).prop('disabled', false).find('i').removeClass('fa-spin fa-spinner').addClass('fa-file-word');
         });
 
     }

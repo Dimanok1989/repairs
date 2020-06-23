@@ -80,6 +80,7 @@ class Montage extends Main
         // Запись нового монтажа
         $id = MontageModel::createNewMontage([
             'bus' => $request->bus,
+            'subBus' => $request->subBus,
             'user' => $request->__user->id,
             'folder' => $request->place,
         ]);
@@ -334,6 +335,20 @@ class Montage extends Main
             ['montageId', $request->id],
             ['name', $request->name],
         ])->get();
+
+        if ($request->name == "subBus") {
+
+            MontageModel::saveSubBus($request->id, $request->value);
+
+            // Вывод данных
+            return parent::json([
+                'message' => "Строка обновлена",
+                'input' => [
+                    'value' => $request->value,
+                ],
+            ]);
+
+        }
 
         // Объект модели
         $input = count($find) ? MontageModel::find($find[0]->id) : new MontageModel;
@@ -960,22 +975,32 @@ class Montage extends Main
     public static function ParceData(Request $request) {
 
         $data = [];
+        
+        // Дата смещения
+        $date = "2020-06-13 10:08:02";
 
         $users = [
+            'Колгаев Дмитрий Петрович' => 1,
+            'Колгаев' => 1,
+            'Xtk' => 2,
+            'Lvbnhbq' => 2,
             'Самойленко' => 2,
             'Андреянов' => 13,
             'Маслов' => 16,
             'Найданов' => 17,
-            'Шрамков' => 20,
-            'Колгаев Дмитрий Петрович' => 1,
-            'Xtk' => 2,
-            'Шохонов' => 18,
-            'Иванов' => 22,
-            'Морковин' => 19,
-            'Lvbnhbq' => 2,
-            'Колгаев' => 1,
             'Найданов В.В.' => 17,
+            'Шохонов' => 18,
+            'Морковин' => 19,
+            'Шрамков' => 20,
+            'Шрамков Е. А.' => 20,
+            'Шрамков Е.А.' => 20,
             'Гейдер А.Р.' => 21,
+            'Гейдер А. Р.' => 21,
+            'Гейдер А.Р' => 21,
+            'Гейдер Андрей Рудольфович' => 21,
+            'Иванов' => 22,
+            'Орлов А.А.' => 23,
+            'Орлов А.А' => 23,
         ];
 
         $indic = [
@@ -990,11 +1015,18 @@ class Montage extends Main
             'comment' => 'comment',
         ];
 
+
+        //--------------------------------------------------------
+        // Преобразование строк монтажа
+
         // $montages = DB::table('montage_temp')
         // ->select('montage_temp.*', 'montage_folders.id as folder')
         // ->leftjoin('montage_folders', 'montage_folders.name', '=', 'montage_temp.place')
+        // ->where('montage_temp.create_at', '>', $date)
+        // ->orderBy('montage_temp.create_at')
         // ->get();
 
+        // $data = [];
         // foreach ($montages as $row) {
         //     $data[] = [
         //         'id' => $row->id,
@@ -1007,9 +1039,21 @@ class Montage extends Main
 
         // DB::table('montage')->insert($data);
 
-        //--------------------------------------------------------
 
-        // foreach (DB::table('montage_temp_data')->where('type', NULL)->get() as $row) {
+        //--------------------------------------------------------
+        // Преобразование введенных данных
+
+        // $rows = DB::table('montage_temp_data')
+        // ->select('montage_temp_data.*', 'montage_temp.create_at')
+        // ->leftjoin('montage_temp', 'montage_temp.id', '=', 'montage_temp_data.idMontage')
+        // ->where([
+        //     ['montage_temp_data.type', NULL],
+        //     ['montage_temp.create_at', '>', $date],
+        // ])
+        // ->get();
+
+        // $data = [];
+        // foreach ($rows as $row) {
 
         //     $value = $row->value;
 
@@ -1032,12 +1076,22 @@ class Montage extends Main
 
         // DB::table('montage_data')->insert($data);
 
-        //--------------------------------------------------------
 
-        // foreach (DB::table('montage_temp_data')->where([
-        //     ['type', 'file'],
-        //     ['del', NULL]
-        // ])->get() as $row) {
+        //--------------------------------------------------------
+        // Заполнение данных с файлами
+
+        // $rows = DB::table('montage_temp_data')
+        // ->select('montage_temp_data.*', 'montage_temp.create_at')
+        // ->leftjoin('montage_temp', 'montage_temp.id', '=', 'montage_temp_data.idMontage')
+        // ->where([
+        //     ['montage_temp_data.type', 'file'],
+        //     ['montage_temp_data.del', NULL],
+        //     ['montage_temp.create_at', '>', $date],
+        // ])
+        // ->get();
+
+        // $data = [];
+        // foreach ($rows as $row) {
 
         //     $data[] = [
         //         'type' => $indic[$row->name] ?? null,
@@ -1051,11 +1105,24 @@ class Montage extends Main
 
         // DB::table('montage_files')->insert($data);
 
+
         //--------------------------------------------------------
+        // Заполнение пользователей
 
-        // $added = [];
+        // $rows = DB::table('montage_temp_users')
+        // ->select('montage_temp_users.*', 'montage_temp.create_at')
+        // ->leftjoin('montage_temp', 'montage_temp.id', '=', 'montage_temp_users.idMontage')
+        // ->where([
+        //     ['montage_temp.create_at', '>', $date],
+        // ])
+        // ->get();
 
-        // foreach (DB::table('montage_temp_users')->get() as $row) {
+        // $data = [];
+        // $added = $usersRows = [];
+        // foreach ($rows as $row) {
+
+        //     if (!in_array($row->fio, $usersRows))
+        //         $usersRows[] = $row->fio;
 
         //     $user = $users[$row->fio] ?? null;
 
@@ -1066,15 +1133,51 @@ class Montage extends Main
         //         'montageId' => $row->idMontage,
         //         'userId' => $user,
         //         'userAdd' => $added[$row->idMontage] != $user ? $added[$row->idMontage] : null,
+        //         'date' => $row->create_at,
         //     ];
 
         // }
 
         // DB::table('montage_users')->insert($data);
 
-        //--------------------------------------------------------
 
-        // foreach (DB::table('montage_comment')->get() as $row) {
+        //--------------------------------------------------------
+        // Обновление пользователей в монтаже
+
+        // $montages = DB::table('montage_users')
+        // ->select('montage_users.*', 'montage.id')
+        // ->leftjoin('montage', 'montage.id', '=', 'montage_users.montageId')
+        // ->where([
+        //     ['montage_users.userAdd', NULL],
+        //     ['montage.date', '>', $date]
+        // ])
+        // ->orderBy('montage.date')
+        // ->get();
+
+        // $data = [];
+        // foreach ($montages as $row) {
+        //     $data[] = $row;
+        // }
+
+        // foreach ($data as $row) {
+        //     DB::table('montage')->where('id', $row->id)->update([
+        //         'user' => $row->userId,
+        //     ]);
+        // }
+
+
+        //--------------------------------------------------------
+        // Заполнение комментариев
+
+        // $rows = DB::table('montage_comment')
+        // ->select('montage_comment.*', 'montage_temp.create_at')
+        // ->leftjoin('montage_temp', 'montage_temp.id', '=', 'montage_comment.idMontage')
+        // ->where([
+        //     ['montage_temp.create_at', '>', $date],
+        // ])
+        // ->get();
+
+        // foreach ($rows as $row) {
 
         //     if ($row->type == 1) {
 
@@ -1116,12 +1219,10 @@ class Montage extends Main
 
         // }
 
-        // DB::table('montage_users')->insert($data);
-
-        echo json_encode($data);
-        return;
 
         // dd($montages);
+        // dd($data);
+        return json_encode($data);
 
     }
 

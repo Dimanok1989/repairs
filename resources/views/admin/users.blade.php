@@ -24,7 +24,7 @@
     </div>
 
     <div class="global-button-add">
-        <button type="button" class="btn btn-success rounded-circle" onclick="admin.userData(this);"><i class="fas fa-plus"></i></button>
+        <button type="button" class="btn btn-success rounded-circle" onclick="admin.userData(this, true);"><i class="fas fa-plus"></i></button>
     </div>
     
 </div>

@@ -61,7 +61,7 @@ function App() {
             }
         });
 
-        console.log(">>", data);
+        console.log(">>", url, data);
 
         $.ajax({
             url: url,
