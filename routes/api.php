@@ -33,6 +33,11 @@ Route::match(['get','post'], '/deleteFile', 'Service\Application@deleteFile');
 // Маршрут для формирование файла по актам
 Route::match(['get','post'], '/montageParceActs', 'Montage\MontageActs@start');
 
+Route::group(['prefix' => 'queue'], function() {
+
+    Route::get('telegramSendMessage', 'Telegram@sendQueue');
+
+});
 
 /** Запросы авторизированных пользователей */
 Route::group([
@@ -43,7 +48,7 @@ Route::group([
     Route::match(['get','post'], '/search', 'Search@search');
 
     /** Работа с заявками */
-    Route::group(['prefix' => 'service'], function () {
+    Route::group(['prefix' => 'service'], function() {
 
         /** Список заявок по фильтрам */
         Route::match(['get','post'], '/getApplicationsList', 'Service\Application@getApplicationsList');
@@ -90,7 +95,7 @@ Route::group([
     });
 
 
-    Route::group(['prefix' => 'montage'], function () {
+    Route::group(['prefix' => 'montage'], function() {
         Route::match(['get','post'], '/getDataForStart', 'Montage\Montage@getDataForStart');
         Route::match(['get','post'], '/start', 'Montage\Montage@start');
         Route::match(['get','post'], '/getOneMontage', 'Montage\Montage@getOneMontage');
@@ -107,7 +112,7 @@ Route::group([
         Route::match(['get','post'], '/chartMontage', 'Montage\Montage@chartMontage');
     });
 
-    Route::group(['prefix' => 'inspection'], function () {
+    Route::group(['prefix' => 'inspection'], function() {
         Route::match(['get','post'], '/startData', 'Inspection\Inspection@startData');
         Route::match(['get','post'], '/start', 'Inspection\Inspection@start');
         Route::match(['get','post'], '/open', 'Inspection\Inspection@open');
@@ -120,7 +125,7 @@ Route::group([
     });
 
     /** Админ панель */
-    Route::group(['prefix' => 'admin'], function () {
+    Route::group(['prefix' => 'admin'], function() {
 
         /** Главная страница списка пользователей */
         Route::match(['get','post'], '/getUsersList', 'Admin\Users@getUsersList');
@@ -189,7 +194,7 @@ Route::group([
         Route::match(['get','post'], '/getStatistic', 'Admin\Admin@getStatistic');
 
         /** Обработка монтажа */
-        Route::group(['prefix' => 'montage'], function () {
+        Route::group(['prefix' => 'montage'], function() {
 
             Route::match(['get','post'], '/', 'Admin\Montage@main');
             /** Список разделов */

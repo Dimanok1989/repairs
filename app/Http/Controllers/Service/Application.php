@@ -15,6 +15,8 @@ use App\Models\ApplicationModel;
 use App\Models\ProjectModel;
 use App\Models\Devices;
 
+use App\Http\Controllers\Telegram;
+
 
 class Application extends Main
 {
@@ -548,14 +550,14 @@ class Application extends Main
             $emodjiproect = \App\Http\Controllers\Admin\Projects::emodjiproect($request->project);
         
             // Текст сообщения
-            $text = "Борт: *{$request->number}* %0A";
-            $text .= "Проект: {$proectname} {$emodjiproect} %0A";
-            $text .= "Принята заявка №{$id} %0A";
-            $text .= "Заявленная неисправность: _{$breaklist}_ %0A";
-            $text .= $request->comment ? "Комментарий: _{$request->comment}_ %0A" : "";
+            $text = "Борт: *{$request->number}*\r\n";
+            $text .= "Проект: {$proectname} {$emodjiproect}\r\n";
+            $text .= "Принята заявка №{$data['ida']}\r\n";
+            $text .= "Заявленная неисправность: _{$breaklist}_\r\n";
+            $text .= $request->comment ? "Комментарий: _{$request->comment}_\r\n" : "";
             $text .= "Подробнее {$link}";
 
-            $telegram = \App\Http\Controllers\Telegram::sendMessage($client->bottoken, $client->telegram, $text);
+            $telegram = Telegram::newMessage($client->id, $client->telegram, $text);
 
         }
 
@@ -1008,15 +1010,15 @@ class Application extends Main
             $link = route('application', ['link' => parent::dec2link($id)]);
 
             // Текст сообщения
-            $text = "Борт: *{$application->bus}* %0A";
-            $text .= "Проект: {$proectname} {$emodjiproect} %0A";
-            $text .= "Заявка №{$id} выполнена ✅ %0A";
-            $text .= "Выполненные работы: _{$repairs}_ %0A";
-            $text .= "Заявленная неисправность: _{$application->breaksListText}_ %0A";
-            $text .= $request->comment ? "Комментарий: _{$request->comment}_ %0A" : "";
+            $text = "Борт: *{$application->bus}*\r\n";
+            $text .= "Проект: {$proectname} {$emodjiproect}\r\n";
+            $text .= "Заявка №{$application->ida} выполнена ✅\r\n";
+            $text .= "Выполненные работы: _{$repairs}_\r\n";
+            $text .= "Заявленная неисправность: _{$application->breaksListText}_\r\n";
+            $text .= $request->comment ? "Комментарий: _{$request->comment}_\r\n" : "";
             $text .= "Подробнее {$link}";
 
-            $telegram = \App\Http\Controllers\Telegram::sendMessage($application->bottoken, $application->telegram, $text);
+            $telegram = Telegram::newMessage($application->clientId, $application->telegram, $text);
 
         }
 
